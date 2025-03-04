@@ -5,14 +5,14 @@ import Image from 'next/image'
 
 interface ProductCardProps {
   product: Product
-  onAddToCart: (product: Product) => void
+  addToCart: (product: Product) => void
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, addToCart }: ProductCardProps) {
   return (
     <Card
       className="hover:border-primary cursor-pointer overflow-hidden p-0 transition-colors"
-      onClick={() => onAddToCart(product)}
+      onClick={() => addToCart(product)}
     >
       <CardContent className="p-2">
         <div className="flex flex-col items-center gap-2">
@@ -22,7 +22,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             width={300}
             height={300}
             className="rounded-md object-cover"
-          />{' '}
+          />
           <div>
             <h3 className="text-center text-sm font-medium">{product.name}</h3>
             <p className="text-primary font-bold">
