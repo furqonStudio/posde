@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 import {
   Search,
   ShoppingCart,
@@ -20,219 +20,90 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import Image from "next/image";
-import { ProductCard } from "./molecules/ProductCard";
-
-// Product categories and sample products
-const categories = ["All", "Food", "Beverages", "Snacks", "Desserts"];
-
-const products = [
-  {
-    id: 1,
-    name: "Chicken Rice",
-    price: 25000,
-    category: "Food",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 2,
-    name: "Beef Noodle",
-    price: 30000,
-    category: "Food",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 3,
-    name: "Iced Tea",
-    price: 8000,
-    category: "Beverages",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 4,
-    name: "Coffee",
-    price: 12000,
-    category: "Beverages",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 5,
-    name: "French Fries",
-    price: 15000,
-    category: "Snacks",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 6,
-    name: "Potato Chips",
-    price: 10000,
-    category: "Snacks",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 7,
-    name: "Ice Cream",
-    price: 18000,
-    category: "Desserts",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 8,
-    name: "Chocolate Cake",
-    price: 22000,
-    category: "Desserts",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 9,
-    name: "Vegetable Soup",
-    price: 20000,
-    category: "Food",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 10,
-    name: "Orange Juice",
-    price: 10000,
-    category: "Beverages",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 11,
-    name: "Chicken Sandwich",
-    price: 23000,
-    category: "Food",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-  {
-    id: 12,
-    name: "Mineral Water",
-    price: 5000,
-    category: "Beverages",
-    image: "/placeholder.svg?height=80&width=80",
-  },
-];
-
-// Navigation menu items
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", active: false },
-  { icon: Package, label: "Products", active: true },
-  { icon: ShoppingBag, label: "Orders", active: false },
-  { icon: Users, label: "Customers", active: false },
-  { icon: BarChart3, label: "Reports", active: false },
-  { icon: Settings, label: "Settings", active: false },
-];
-
-// Cart item type
-type CartItem = {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-};
+} from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { ProductCard } from './molecules/ProductCard'
+import { categories, menuItems, products } from '@/data'
+import { CartItem } from '@/types'
 
 export default function PosInterface() {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [cashAmount, setCashAmount] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
-  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [cashAmount, setCashAmount] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
 
-  // Filter products based on category and search query
-  const filteredProducts = products.filter(
-    (product) =>
-      (activeCategory === "All" || product.category === activeCategory) &&
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredProducts =
+    activeCategory === 'All'
+      ? products
+      : products.filter((product) => product.category === activeCategory)
 
-  // Add product to cart
-  const addToCart = (product: (typeof products)[0]) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
-    });
-  };
+  const addToCart = (product) => {
+    setCart([...cart, { ...product, quantity: 1 }])
+  }
 
-  // Update item quantity
-  const updateQuantity = (id: number, change: number) => {
-    setCart((prevCart) =>
-      prevCart
-        .map((item) =>
-          item.id === id
-            ? { ...item, quantity: Math.max(1, item.quantity + change) }
-            : item,
-        )
-        .filter((item) => item.quantity > 0),
-    );
-  };
+  const updateQuantity = (productId, quantity) => {
+    setCart(
+      cart.map((item) =>
+        item.id === productId ? { ...item, quantity } : item,
+      ),
+    )
+  }
 
-  // Remove item from cart
-  const removeItem = (id: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
-  };
+  const removeItem = (productId) => {
+    setCart(cart.filter((item) => item.id !== productId))
+  }
 
   // Calculate subtotal
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
-  );
-  const tax = Math.round(subtotal * 0.1); // 10% tax
-  const total = subtotal + tax;
+  )
+  const tax = Math.round(subtotal * 0.1) // 10% tax
+  const total = subtotal + tax
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(amount);
-  };
+    }).format(amount)
+  }
 
   // Calculate change
   const calculateChange = () => {
-    const cashValue = Number.parseInt(cashAmount.replace(/\D/g, "")) || 0;
-    return Math.max(0, cashValue - total);
-  };
+    const cashValue = Number.parseInt(cashAmount.replace(/\D/g, '')) || 0
+    return Math.max(0, cashValue - total)
+  }
 
   // Sidebar component
   const Sidebar = ({
     collapsed,
     onCollapse,
   }: {
-    collapsed: boolean;
-    onCollapse: () => void;
+    collapsed: boolean
+    onCollapse: () => void
   }) => (
     <div
       className={`bg-muted/30 flex h-full flex-col border-r transition-all duration-300 ${
-        collapsed ? "w-16" : "w-64"
+        collapsed ? 'w-16' : 'w-64'
       }`}
     >
       <div className="flex items-center justify-between border-b p-4">
@@ -250,10 +121,10 @@ export default function PosInterface() {
           {menuItems.map((item) => (
             <Button
               key={item.label}
-              variant={item.active ? "secondary" : "ghost"}
-              className={`mb-1 w-full justify-start ${collapsed ? "px-2" : ""}`}
+              variant={item.active ? 'secondary' : 'ghost'}
+              className={`mb-1 w-full justify-start ${collapsed ? 'px-2' : ''}`}
             >
-              <item.icon className={`h-5 w-5 ${collapsed ? "" : "mr-2"}`} />
+              <item.icon className={`h-5 w-5 ${collapsed ? '' : 'mr-2'}`} />
               {!collapsed && item.label}
             </Button>
           ))}
@@ -271,14 +142,14 @@ export default function PosInterface() {
         </div>
       )}
     </div>
-  );
+  )
 
   return (
     <div className="flex h-screen">
       {/* Left sidebar - Navigation (hidden on mobile) */}
       <div
         className={`hidden transition-all duration-300 md:block ${
-          leftSidebarCollapsed ? "w-16" : "w-64"
+          leftSidebarCollapsed ? 'w-16' : 'w-64'
         }`}
       >
         <Sidebar
@@ -345,7 +216,7 @@ export default function PosInterface() {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    onAddToCart={onAddToCart}
+                    onAddToCart={addToCart}
                     formatCurrency={formatCurrency}
                   />
                 ))}
@@ -358,7 +229,7 @@ export default function PosInterface() {
       {/* Right side - Cart */}
       <div
         className={`bg-muted/30 flex h-full flex-col border-l transition-all duration-300 ${
-          rightSidebarCollapsed ? "w-16" : "w-full md:w-1/3 lg:w-1/4"
+          rightSidebarCollapsed ? 'w-16' : 'w-full md:w-1/3 lg:w-1/4'
         }`}
       >
         <div className="flex items-center justify-between border-b p-4">
@@ -373,7 +244,7 @@ export default function PosInterface() {
             variant="ghost"
             size="icon"
             onClick={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
-            className={rightSidebarCollapsed ? "ml-auto" : ""}
+            className={rightSidebarCollapsed ? 'ml-auto' : ''}
           >
             {rightSidebarCollapsed ? (
               <ChevronLeft className="h-4 w-4" />
@@ -399,7 +270,7 @@ export default function PosInterface() {
                       className="bg-background flex items-center gap-3 rounded-lg p-2"
                     >
                       <img
-                        src={item.image || "/placeholder.svg"}
+                        src={item.image || '/placeholder.svg'}
                         alt={item.name}
                         className="h-12 w-12 rounded"
                       />
@@ -538,9 +409,9 @@ export default function PosInterface() {
               </Button>
               <Button
                 onClick={() => {
-                  setPaymentDialogOpen(false);
-                  setCart([]);
-                  setCashAmount("");
+                  setPaymentDialogOpen(false)
+                  setCart([])
+                  setCashAmount('')
                 }}
                 className="gap-2"
               >
@@ -552,5 +423,5 @@ export default function PosInterface() {
         </Dialog>
       </div>
     </div>
-  );
+  )
 }
