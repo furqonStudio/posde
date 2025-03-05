@@ -27,15 +27,8 @@ interface Category {
   name: string
 }
 
-interface CategoryManagementProps {
-  categories: Category[]
-  onCategoryChange: (categories: Category[]) => void
-}
-
-export function CategoryManagement({
-  categories,
-  onCategoryChange,
-}: CategoryManagementProps) {
+export function CategoryManagement() {
+  const [categories, setCategories] = useState<Category[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [categoryName, setCategoryName] = useState('')
@@ -53,8 +46,7 @@ export function CategoryManagement({
   }
 
   const handleDeleteCategory = (categoryId: number) => {
-    const updatedCategories = categories.filter((cat) => cat.id !== categoryId)
-    onCategoryChange(updatedCategories)
+    setCategories((prev) => prev.filter((cat) => cat.id !== categoryId))
     toast.success('Category deleted successfully')
   }
 
@@ -64,22 +56,27 @@ export function CategoryManagement({
       return
     }
 
-    let updatedCategories: Category[]
-    if (editingCategory) {
-      updatedCategories = categories.map((cat) =>
-        cat.id === editingCategory.id ? { ...cat, name: categoryName } : cat,
-      )
-      toast.success('Category updated successfully')
-    } else {
-      const newCategory: Category = {
-        id: Math.max(0, ...categories.map((c) => c.id)) + 1,
-        name: categoryName,
+    setCategories((prev) => {
+      if (editingCategory) {
+        return prev.map((cat) =>
+          cat.id === editingCategory.id ? { ...cat, name: categoryName } : cat,
+        )
+      } else {
+        return [
+          ...prev,
+          {
+            id: Math.max(0, ...prev.map((c) => c.id)) + 1,
+            name: categoryName,
+          },
+        ]
       }
-      updatedCategories = [...categories, newCategory]
-      toast.success('Category added successfully')
-    }
+    })
 
-    onCategoryChange(updatedCategories)
+    toast.success(
+      editingCategory
+        ? 'Category updated successfully'
+        : 'Category added successfully',
+    )
     setIsModalOpen(false)
     setCategoryName('')
   }
@@ -95,16 +92,18 @@ export function CategoryManagement({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="w-2/4 border-r">Name</TableHead>
+            <TableHead className="w-1/4 border-r">Total Products</TableHead>
+            <TableHead className="w-1/4 text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {categories.map((category) => (
             <TableRow key={category.id}>
-              <TableCell>{category.name}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
+              <TableCell className="w-2/4 border-r">{category.name}</TableCell>
+              <TableCell className="w-1/4 border-r">10</TableCell>
+              <TableCell className="w-1/4">
+                <div className="flex items-center justify-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"

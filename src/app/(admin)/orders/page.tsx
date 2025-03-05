@@ -5,10 +5,7 @@ import React from 'react'
 const OrderPages = () => {
   return (
     <div className="w-full overflow-scroll p-4">
-      <CategoryManagement
-        categories={[{ id: 1, name: 'asd' }]}
-        onCategoryChange={() => {}}
-      />
+      <CategoryManagement />
     </div>
   )
 }
