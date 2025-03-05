@@ -25,20 +25,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { toast } from 'sonner'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+
 import { useState } from 'react'
 import { CategoryFormModal } from './CategoryFormModal'
 import type { Category } from '@/types'
 import { categories as initialCategories } from '@/data'
+import { ConfirmationAlert } from './ConfirmationAlert'
 
 export function CategoriesTable() {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
@@ -126,7 +118,7 @@ export function CategoriesTable() {
   const handleSaveAdd = (newCategory: Partial<Category>) => {
     const categoryToAdd = {
       ...newCategory,
-      id: categories.length + 1, // This is a simple way to generate an ID. In a real app, you'd use a more robust method.
+      id: categories.length + 1,
     } as Category
 
     setCategories([...categories, categoryToAdd])
@@ -272,7 +264,7 @@ export function CategoriesTable() {
           </Button>
         </div>
       </div>
-      {/* Add Modal */}AlertDialog={}
+      {/* Add Modal */}
       <CategoryFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -290,25 +282,12 @@ export function CategoriesTable() {
         description="Make changes to the category details here."
       />
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              category
-              {selectedCategory && ` "${selectedCategory.name}"`} from the
-              database.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationAlert
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        selectedName={selectedCategory}
+        onClick={confirmDelete}
+      />
     </div>
   )
 }

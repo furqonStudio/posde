@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -48,24 +47,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ProductFormModal } from './ProductFormModal'
+import { useState } from 'react'
+import { ConfirmationAlert } from './ConfirmationAlert'
 
 export function ProductsTable() {
-  const [products, setProducts] = React.useState<Product[]>(initialProducts)
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
-  const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(
-    null,
-  )
+  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState({})
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
-  // Define columns inside the component to access the handlers
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'image',
@@ -166,7 +161,7 @@ export function ProductsTable() {
   const handleSaveAdd = (newProduct: Partial<Product>) => {
     const productToAdd = {
       ...newProduct,
-      id: products.length + 1, // This is a simple way to generate an ID. In a real app, you'd use a more robust method.
+      id: products.length + 1,
       price: Number(newProduct.price),
     } as Product
 
@@ -374,26 +369,12 @@ export function ProductsTable() {
         description="Make changes to the product details here."
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              product
-              {selectedProduct && ` "${selectedProduct.name}"`} from the
-              database.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationAlert
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        selectedName={selectedProduct}
+        onClick={confirmDelete}
+      />
     </div>
   )
 }
