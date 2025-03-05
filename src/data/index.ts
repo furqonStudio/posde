@@ -9,7 +9,16 @@ import {
   Boxes,
 } from 'lucide-react'
 
-export const categories = ['All', 'Food', 'Beverages', 'Snacks', 'Desserts']
+export const categories = [
+  {
+    id: 1,
+    name: 'Makanan',
+  },
+  {
+    id: 2,
+    name: 'Minuman',
+  },
+]
 
 export const products: Product[] = [
   {

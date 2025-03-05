@@ -13,3 +13,8 @@ export type Product = {
   category: string
   image: string
 }
+
+export type Category = {
+  id: number
+  name: string
+}
