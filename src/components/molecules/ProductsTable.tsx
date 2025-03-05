@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Pencil, Plus, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,14 +30,6 @@ import { formatCurrency } from '@/utils/format'
 import type { Product } from '@/types'
 import { products as initialProducts } from '@/data'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -47,7 +39,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import {
   Select,
@@ -56,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ProductFormModal } from './ProductFormModal'
 
 export function ProductsTable() {
   const [products, setProducts] = React.useState<Product[]>(initialProducts)
@@ -66,17 +58,12 @@ export function ProductsTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(
     null,
   )
-  const [editFormData, setEditFormData] = React.useState({
-    name: '',
-    price: '',
-    category: '',
-    image: '',
-  })
 
   // Define columns inside the component to access the handlers
   const columns: ColumnDef<Product>[] = [
@@ -167,58 +154,38 @@ export function ProductsTable() {
     },
   })
 
+  const handleAdd = () => {
+    setIsAddModalOpen(true)
+  }
+
   const handleEdit = (product: Product) => {
     setSelectedProduct(product)
-    setEditFormData({
-      name: product.name,
-      price: product.price.toString(),
-      category: product.category,
-      image: product.image,
-    })
     setIsEditModalOpen(true)
   }
 
-  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target
-    setEditFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }))
+  const handleSaveAdd = (newProduct: Partial<Product>) => {
+    const productToAdd = {
+      ...newProduct,
+      id: products.length + 1, // This is a simple way to generate an ID. In a real app, you'd use a more robust method.
+      price: Number(newProduct.price),
+    } as Product
+
+    setProducts([...products, productToAdd])
+    setIsAddModalOpen(false)
+    toast.success('Product added', {
+      description: `${newProduct.name} has been added successfully.`,
+    })
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setEditFormData((prev) => ({
-          ...prev,
-          image: reader.result as string,
-        }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleRemoveImage = () => {
-    setEditFormData((prev) => ({
-      ...prev,
-      image: '',
-    }))
-  }
-
-  const handleSaveEdit = () => {
+  const handleSaveEdit = (updatedProduct: Partial<Product>) => {
     if (!selectedProduct) return
 
-    // Update the product in the products array
     const updatedProducts = products.map((product) => {
       if (product.id === selectedProduct.id) {
         return {
           ...product,
-          name: editFormData.name,
-          price: Number.parseFloat(editFormData.price),
-          category: editFormData.category,
-          image: editFormData.image,
+          ...updatedProduct,
+          price: Number(updatedProduct.price),
         }
       }
       return product
@@ -227,7 +194,7 @@ export function ProductsTable() {
     setProducts(updatedProducts)
     setIsEditModalOpen(false)
     toast.success('Product updated', {
-      description: `${editFormData.name} has been updated successfully.`,
+      description: `${updatedProduct.name} has been updated successfully.`,
     })
   }
 
@@ -242,7 +209,6 @@ export function ProductsTable() {
   const confirmDelete = () => {
     if (!selectedProduct) return
 
-    // Remove the product from the products array
     const updatedProducts = products.filter(
       (product) => product.id !== selectedProduct.id,
     )
@@ -255,59 +221,66 @@ export function ProductsTable() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between pb-4">
+      <div className="flex flex-col gap-4 pb-4">
         <h2 className="ml-8 text-lg font-medium md:ml-0">Products Table</h2>
-
-        <div className="flex gap-4">
-          <Input
-            placeholder="Search products..."
-            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn('name')?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-          <Select
-            value={table.getState().pagination.pageSize.toString()}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value))
-            }}
-          >
-            <SelectTrigger className="">
-              <SelectValue placeholder="Select rows per page" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize} rows
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={
-              (table.getColumn('category')?.getFilterValue() as string) ?? ''
-            }
-            onValueChange={(value) =>
-              table.getColumn('category')?.setFilterValue(value)
-            }
-          >
-            <SelectTrigger className="">
-              <SelectValue placeholder="category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {Array.from(new Set(products.map((p) => p.category))).map(
-                (category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-4">
+            <Input
+              placeholder="Search products..."
+              value={
+                (table.getColumn('name')?.getFilterValue() as string) ?? ''
+              }
+              onChange={(event) =>
+                table.getColumn('name')?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+            <Select
+              value={
+                (table.getColumn('category')?.getFilterValue() as string) ?? ''
+              }
+              onValueChange={(value) =>
+                table.getColumn('category')?.setFilterValue(value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {Array.from(new Set(products.map((p) => p.category))).map(
+                  (category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+            <Select
+              value={table.getState().pagination.pageSize.toString()}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value))
+              }}
+            >
+              <SelectTrigger className="w-[70px]">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
                   </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" /> Add Product
+          </Button>
         </div>
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader className="bg-gray-100">
@@ -358,9 +331,9 @@ export function ProductsTable() {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          <p>Total {products.length} Products</p>
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="text-muted-foreground text-sm">
+          {table.getFilteredRowModel().rows.length} products total
         </div>
         <div className="space-x-2">
           <Button
@@ -382,91 +355,26 @@ export function ProductsTable() {
         </div>
       </div>
 
-      {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-            <DialogDescription>
-              Make changes to the product details here.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="image" className="text-right">
-                Image
-              </Label>
-              <div className="col-span-3">
-                {editFormData.image && (
-                  <div className="mb-2">
-                    <Image
-                      src={editFormData.image || '/placeholder.svg'}
-                      alt="Product"
-                      width={100}
-                      height={100}
-                      className="rounded-md"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={handleRemoveImage}
-                      className="mt-2"
-                    >
-                      Remove Image
-                    </Button>
-                  </div>
-                )}
-                <Input
-                  id="image"
-                  type="file"
-                  onChange={handleImageUpload}
-                  accept="image/*"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="name"
-                value={editFormData.name}
-                onChange={handleEditInputChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right">
-                Price
-              </Label>
-              <Input
-                id="price"
-                type="number"
-                value={editFormData.price}
-                onChange={handleEditInputChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Category
-              </Label>
-              <Input
-                id="category"
-                value={editFormData.category}
-                onChange={handleEditInputChange}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit" onClick={handleSaveEdit}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Add Modal */}
+      <ProductFormModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleSaveAdd}
+        title="Add New Product"
+        description="Enter the details for the new product."
+      />
 
+      {/* Edit Modal */}
+      <ProductFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveEdit}
+        product={selectedProduct || undefined}
+        title="Edit Product"
+        description="Make changes to the product details here."
+      />
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
