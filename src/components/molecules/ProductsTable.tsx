@@ -360,7 +360,7 @@ export function ProductsTable() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          <p>Total {table.getFilteredRowModel().rows.length} Products</p>
+          <p>Total {products.length} Products</p>
         </div>
         <div className="space-x-2">
           <Button
