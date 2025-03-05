@@ -64,6 +64,7 @@ export function ProductsTable() {
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'image',
+      size: 100,
       header: 'Image',
       cell: ({ row }) => (
         <Image
@@ -90,7 +91,15 @@ export function ProductsTable() {
     },
     {
       accessorKey: 'price',
-      header: () => <div className="text-right">Price</div>,
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Price
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const price = Number.parseFloat(row.getValue('price'))
         const formatted = formatCurrency(price)
@@ -109,7 +118,7 @@ export function ProductsTable() {
       cell: ({ row }) => {
         const product = row.original
         return (
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -276,14 +285,14 @@ export function ProductsTable() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="font-bold text-black">
+                    <TableHead key={header.id} className="border-x text-center">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -304,7 +313,7 @@ export function ProductsTable() {
                   data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="border-x">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

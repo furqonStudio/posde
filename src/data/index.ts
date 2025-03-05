@@ -13,10 +13,12 @@ export const categories = [
   {
     id: 1,
     name: 'Makanan',
+    products: 20,
   },
   {
     id: 2,
     name: 'Minuman',
+    products: 20,
   },
 ]
 

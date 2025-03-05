@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* <ProductGrid addToCart={addToCart} /> */}
+      <ProductGrid addToCart={addToCart} />
 
       <OrderSideBar
         cart={cart}

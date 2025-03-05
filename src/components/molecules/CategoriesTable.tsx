@@ -60,6 +60,19 @@ export function CategoriesTable() {
       cell: ({ row }) => <div>{row.getValue('name')}</div>,
     },
     {
+      accessorKey: 'products',
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Products
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue('products')}</div>,
+    },
+    {
       id: 'actions',
       enableHiding: false,
       header: 'Actions',
