@@ -13,15 +13,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -55,6 +49,13 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export function ProductsTable() {
   const [products, setProducts] = React.useState<Product[]>(initialProducts)
@@ -74,6 +75,7 @@ export function ProductsTable() {
     name: '',
     price: '',
     category: '',
+    image: '',
   })
 
   // Define columns inside the component to access the handlers
@@ -121,6 +123,7 @@ export function ProductsTable() {
     {
       id: 'actions',
       enableHiding: false,
+      header: 'Actions',
       cell: ({ row }) => {
         const product = row.original
         return (
@@ -130,14 +133,14 @@ export function ProductsTable() {
               size="sm"
               onClick={() => handleEdit(product)}
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4 text-blue-500" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleDelete(product.id)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
           </div>
         )
@@ -170,6 +173,7 @@ export function ProductsTable() {
       name: product.name,
       price: product.price.toString(),
       category: product.category,
+      image: product.image,
     })
     setIsEditModalOpen(true)
   }
@@ -179,6 +183,27 @@ export function ProductsTable() {
     setEditFormData((prev) => ({
       ...prev,
       [id]: value,
+    }))
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setEditFormData((prev) => ({
+          ...prev,
+          image: reader.result as string,
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setEditFormData((prev) => ({
+      ...prev,
+      image: '',
     }))
   }
 
@@ -193,6 +218,7 @@ export function ProductsTable() {
           name: editFormData.name,
           price: Number.parseFloat(editFormData.price),
           category: editFormData.category,
+          image: editFormData.image,
         }
       }
       return product
@@ -234,49 +260,62 @@ export function ProductsTable() {
 
         <div className="flex gap-4">
           <Input
-            placeholder="Filter names..."
+            placeholder="Search products..."
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
             onChange={(event) =>
               table.getColumn('name')?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  )
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Select
+            value={table.getState().pagination.pageSize.toString()}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value))
+            }}
+          >
+            <SelectTrigger className="">
+              <SelectValue placeholder="Select rows per page" />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 30, 40, 50].map((pageSize) => (
+                <SelectItem key={pageSize} value={`${pageSize}`}>
+                  {pageSize} rows
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={
+              (table.getColumn('category')?.getFilterValue() as string) ?? ''
+            }
+            onValueChange={(value) =>
+              table.getColumn('category')?.setFilterValue(value)
+            }
+          >
+            <SelectTrigger className="">
+              <SelectValue placeholder="category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {Array.from(new Set(products.map((p) => p.category))).map(
+                (category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-100">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="font-bold text-black">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -321,8 +360,7 @@ export function ProductsTable() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          <p>Total {table.getFilteredRowModel().rows.length} Products</p>
         </div>
         <div className="space-x-2">
           <Button
@@ -354,6 +392,38 @@ export function ProductsTable() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="image" className="text-right">
+                Image
+              </Label>
+              <div className="col-span-3">
+                {editFormData.image && (
+                  <div className="mb-2">
+                    <Image
+                      src={editFormData.image || '/placeholder.svg'}
+                      alt="Product"
+                      width={100}
+                      height={100}
+                      className="rounded-md"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleRemoveImage}
+                      className="mt-2"
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
+                <Input
+                  id="image"
+                  type="file"
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Name
@@ -397,7 +467,6 @@ export function ProductsTable() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
