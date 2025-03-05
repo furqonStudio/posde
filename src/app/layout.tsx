@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
+import { Toaster } from 'sonner'
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -18,7 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.className}  antialiased`}>{children}</body>
+      <body className={`${geistSans.className} antialiased`}>
+        <Toaster richColors />
+        {children}
+      </body>
     </html>
   )
 }
