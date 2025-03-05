@@ -6,6 +6,7 @@ import {
   Settings,
   SquareMenu,
   Package,
+  Boxes,
 } from 'lucide-react'
 
 export const categories = ['All', 'Food', 'Beverages', 'Snacks', 'Desserts']
@@ -158,5 +159,6 @@ export const menuItems = [
   { icon: SquareMenu, label: 'Menu', href: '/menu' },
   { icon: ShoppingBag, label: 'Orders', href: '/orders' },
   { icon: Package, label: 'Products', href: '/products' },
+  { icon: Boxes, label: 'Categories', href: '/categories' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ]
