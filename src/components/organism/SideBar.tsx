@@ -5,9 +5,12 @@ import { Button } from '../ui/button'
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react'
 import { ScrollArea } from '../ui/scroll-area'
 import { menuItems } from '@/data'
+import { usePathname, useRouter } from 'next/navigation'
 
 export const SideBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
 
   return (
     <div
@@ -39,8 +42,9 @@ export const SideBar = () => {
             {menuItems.map((item) => (
               <Button
                 key={item.label}
-                variant={item.active ? 'secondary' : 'ghost'}
+                variant={pathname === item.href ? 'secondary' : 'ghost'}
                 className={`mb-1 w-full justify-start ${isCollapsed ? 'px-2' : ''}`}
+                onClick={() => router.push(item.href)}
               >
                 <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-2'}`} />
                 {!isCollapsed && item.label}

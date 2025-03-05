@@ -1,10 +1,10 @@
 import {
   LayoutDashboard,
-  Package,
   ShoppingBag,
   Users,
-  BarChart3,
   Settings,
+  SquareMenu,
+  Package,
 } from 'lucide-react'
 
 export const categories = ['All', 'Food', 'Beverages', 'Snacks', 'Desserts']
@@ -96,12 +96,10 @@ export const products = [
   },
 ]
 
-// Navigation menu items
 export const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', active: false },
-  { icon: Package, label: 'Products', active: true },
-  { icon: ShoppingBag, label: 'Orders', active: false },
-  { icon: Users, label: 'Customers', active: false },
-  { icon: BarChart3, label: 'Reports', active: false },
-  { icon: Settings, label: 'Settings', active: false },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: SquareMenu, label: 'Menu', href: '/menu' },
+  { icon: ShoppingBag, label: 'Orders', href: '/orders' },
+  { icon: Package, label: 'Products', href: '/products' },
+  { icon: Settings, label: 'Settings', href: '/settings' },
 ]

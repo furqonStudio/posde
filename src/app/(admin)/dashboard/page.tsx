@@ -8,7 +8,7 @@ import { ProductGrid } from '@/components/organism/ProductGrid'
 import { useCart } from '@/hooks/useCart'
 import { PaymentDialog } from '@/components/molecules/PaymentDialog'
 
-export default function Home() {
+export default function Dashboard() {
   const {
     cart,
     setCart,
@@ -26,28 +26,26 @@ export default function Home() {
   const total = calculateTotal()
 
   return (
-    <main className="bg-background min-h-screen">
-      <div className="flex h-screen">
-        <ProductGrid addToCart={addToCart} />
+    <>
+      <ProductGrid addToCart={addToCart} />
 
-        <OrderSideBar
-          cart={cart}
-          updateQuantity={updateQuantity}
-          removeItem={removeItem}
-          subtotal={subtotal}
-          tax={tax}
-          total={total}
-          setCart={setCart}
-          setPaymentDialogOpen={setPaymentDialogOpen}
-        />
+      <OrderSideBar
+        cart={cart}
+        updateQuantity={updateQuantity}
+        removeItem={removeItem}
+        subtotal={subtotal}
+        tax={tax}
+        total={total}
+        setCart={setCart}
+        setPaymentDialogOpen={setPaymentDialogOpen}
+      />
 
-        <PaymentDialog
-          paymentDialogOpen={paymentDialogOpen}
-          setCart={setCart}
-          setPaymentDialogOpen={setPaymentDialogOpen}
-          total={total}
-        />
-      </div>
-    </main>
+      <PaymentDialog
+        paymentDialogOpen={paymentDialogOpen}
+        setCart={setCart}
+        setPaymentDialogOpen={setPaymentDialogOpen}
+        total={total}
+      />
+    </>
   )
 }
