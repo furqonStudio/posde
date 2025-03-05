@@ -64,7 +64,7 @@ export function ProductsTable() {
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'image',
-      size: 100,
+      size: 50,
       header: 'Image',
       cell: ({ row }) => (
         <Image
@@ -72,7 +72,7 @@ export function ProductsTable() {
           alt={row.getValue('name')}
           width={32}
           height={32}
-          className="rounded-sm"
+          className="m-auto items-center rounded-sm"
         />
       ),
     },
@@ -115,6 +115,7 @@ export function ProductsTable() {
       id: 'actions',
       enableHiding: false,
       header: 'Actions',
+      size: 20,
       cell: ({ row }) => {
         const product = row.original
         return (
@@ -287,12 +288,21 @@ export function ProductsTable() {
 
       <div className="rounded-md">
         <Table>
-          <TableHeader className="">
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  console.log(
+                    '🚀 ~ {headerGroup.headers.map ~ header.getSize():',
+                    header.getSize(),
+                  )
+
                   return (
-                    <TableHead key={header.id} className="border-x text-center">
+                    <TableHead
+                      key={header.id}
+                      className="border-x text-center"
+                      style={{ width: `${header.getSize()}px` }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
