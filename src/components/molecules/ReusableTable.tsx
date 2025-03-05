@@ -33,13 +33,15 @@ import {
 } from '@/components/ui/select'
 import { useState } from 'react'
 
-interface ReusableTableProps<T> {
+type ReusableTableProps<T> = {
+  title: string
   columns: ColumnDef<T>[]
   data: T[]
   onAdd: () => void
 }
 
 export function ReusableTable<T>({
+  title,
   columns,
   data,
   onAdd,
@@ -71,6 +73,8 @@ export function ReusableTable<T>({
   return (
     <div className="w-full">
       <div className="flex flex-col gap-4 pb-4">
+        <h2 className="ml-8 text-lg font-medium md:ml-0">{title} Table</h2>
+
         <div className="flex items-center justify-between">
           <div className="flex gap-4">
             <Input
@@ -108,7 +112,7 @@ export function ReusableTable<T>({
       </div>
 
       <div className="rounded-md">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

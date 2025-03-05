@@ -23,15 +23,15 @@ export function ProductsTable() {
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'image',
+      size: 50,
       header: 'Image',
-      size: 100,
       cell: ({ row }) => (
         <Image
           src={row.getValue('image') || '/placeholder.svg'}
           alt={row.getValue('name')}
           width={32}
           height={32}
-          className="rounded-sm"
+          className="m-auto rounded-sm"
         />
       ),
     },
@@ -46,7 +46,6 @@ export function ProductsTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      size: 200,
       cell: ({ row }) => <div>{row.getValue('name')}</div>,
     },
     {
@@ -60,7 +59,6 @@ export function ProductsTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      size: 100,
       cell: ({ row }) => {
         const price = Number.parseFloat(row.getValue('price'))
         const formatted = formatCurrency(price)
@@ -70,14 +68,13 @@ export function ProductsTable() {
     {
       accessorKey: 'category',
       header: 'Category',
-      size: 150,
       cell: ({ row }) => <div>{row.getValue('category')}</div>,
     },
     {
       id: 'actions',
+      size: 50,
       enableHiding: false,
       header: 'Actions',
-      size: 100,
       cell: ({ row }) => {
         const product = row.original
         return (
@@ -169,7 +166,12 @@ export function ProductsTable() {
 
   return (
     <div className="w-full">
-      <ReusableTable columns={columns} data={products} onAdd={handleAdd} />
+      <ReusableTable
+        title="Products"
+        columns={columns}
+        data={products}
+        onAdd={handleAdd}
+      />
       {/* Add Modal */}
       <ProductFormModal
         isOpen={isAddModalOpen}
