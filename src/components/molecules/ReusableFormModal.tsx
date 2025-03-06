@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 
 interface FormField {
   id: string
@@ -28,6 +29,13 @@ interface ReusableFormModalProps {
   title: string
   description: string
   fields: FormField[]
+  imageField?: {
+    id: string
+    label: string
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onRemove: () => void
+  }
 }
 
 export function ReusableFormModal({
@@ -37,6 +45,7 @@ export function ReusableFormModal({
   title,
   description,
   fields,
+  imageField,
 }: ReusableFormModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -46,6 +55,40 @@ export function ReusableFormModal({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          {imageField && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor={imageField.id} className="text-right">
+                {imageField.label}
+              </Label>
+              <div className="col-span-3">
+                {imageField.value && (
+                  <div className="mb-2">
+                    <Image
+                      src={imageField.value || '/placeholder.svg'}
+                      alt="Image"
+                      width={100}
+                      height={100}
+                      className="rounded-md"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={imageField.onRemove}
+                      className="mt-2"
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
+                <Input
+                  id={imageField.id}
+                  type="file"
+                  onChange={imageField.onChange}
+                  accept="image/*"
+                />
+              </div>
+            </div>
+          )}
           {fields.map((field) => (
             <div key={field.id} className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor={field.id} className="text-right">

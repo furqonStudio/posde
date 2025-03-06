@@ -1,7 +1,6 @@
 'use client'
 
 import { ReusableTable } from './ReusableTable'
-import { ProductFormModal } from './ProductFormModal'
 import { useState } from 'react'
 import { ConfirmationAlert } from './ConfirmationAlert'
 import { toast } from 'sonner'
@@ -12,6 +11,7 @@ import { formatCurrency } from '@/utils/format'
 import type { Product } from '@/types'
 import { products as initialProducts } from '@/data'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { ReusableFormModal } from './ReusableFormModal'
 
 export function ProductsTable() {
   const [products, setProducts] = useState<Product[]>(initialProducts)
@@ -19,6 +19,12 @@ export function ProductsTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [formData, setFormData] = useState<Partial<Product>>({
+    name: '',
+    price: 0,
+    category: '',
+    image: '',
+  })
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -100,37 +106,44 @@ export function ProductsTable() {
   ]
 
   const handleAdd = () => {
+    setFormData({
+      name: '',
+      price: 0,
+      category: '',
+      image: '',
+    })
     setIsAddModalOpen(true)
   }
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product)
+    setFormData(product)
     setIsEditModalOpen(true)
   }
 
-  const handleSaveAdd = (newProduct: Partial<Product>) => {
+  const handleSaveAdd = () => {
     const productToAdd = {
-      ...newProduct,
+      ...formData,
       id: products.length + 1,
-      price: Number(newProduct.price),
+      price: Number(formData.price),
     } as Product
 
     setProducts([...products, productToAdd])
     setIsAddModalOpen(false)
     toast.success('Product added', {
-      description: `${newProduct.name} has been added successfully.`,
+      description: `${formData.name} has been added successfully.`,
     })
   }
 
-  const handleSaveEdit = (updatedProduct: Partial<Product>) => {
+  const handleSaveEdit = () => {
     if (!selectedProduct) return
 
     const updatedProducts = products.map((product) => {
       if (product.id === selectedProduct.id) {
         return {
           ...product,
-          ...updatedProduct,
-          price: Number(updatedProduct.price),
+          ...formData,
+          price: Number(formData.price),
         }
       }
       return product
@@ -139,7 +152,7 @@ export function ProductsTable() {
     setProducts(updatedProducts)
     setIsEditModalOpen(false)
     toast.success('Product updated', {
-      description: `${updatedProduct.name} has been updated successfully.`,
+      description: `${formData.name} has been updated successfully.`,
     })
   }
 
@@ -164,6 +177,58 @@ export function ProductsTable() {
     })
   }
 
+  const formFields = [
+    {
+      id: 'name',
+      label: 'Name',
+      type: 'text',
+      value: formData.name,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, name: e.target.value }),
+    },
+    {
+      id: 'price',
+      label: 'Price',
+      type: 'number',
+      value: formData.price,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, price: Number(e.target.value) }),
+    },
+    {
+      id: 'category',
+      label: 'Category',
+      type: 'text',
+      value: formData.category,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, category: e.target.value }),
+    },
+  ]
+
+  const imageField = {
+    id: 'image',
+    label: 'Image',
+    value: formData.image || '',
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setFormData((prev) => ({
+            ...prev,
+            image: reader.result as string,
+          }))
+        }
+        reader.readAsDataURL(file)
+      }
+    },
+    onRemove: () => {
+      setFormData((prev) => ({
+        ...prev,
+        image: '',
+      }))
+    },
+  }
+
   return (
     <div className="w-full">
       <ReusableTable
@@ -172,23 +237,24 @@ export function ProductsTable() {
         data={products}
         onAdd={handleAdd}
       />
-      {/* Add Modal */}
-      {/* <ProductFormModal
+
+      <ReusableFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleSaveAdd}
         title="Add New Product"
         description="Enter the details for the new product."
-      /> */}
-
-      {/* Edit Modal */}
-      <ProductFormModal
+        fields={formFields}
+        imageField={imageField}
+      />
+      <ReusableFormModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveEdit}
-        product={selectedProduct || undefined}
         title="Edit Product"
         description="Make changes to the product details here."
+        fields={formFields}
+        imageField={imageField}
       />
 
       <ConfirmationAlert
