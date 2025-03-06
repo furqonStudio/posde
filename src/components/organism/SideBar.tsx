@@ -32,7 +32,7 @@ export const SideBar = () => {
           )}
         </Button>
       </div>
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-auto">
         <div className="p-3">
           {menuItems.map((item) => (
             <Button
@@ -46,7 +46,7 @@ export const SideBar = () => {
             </Button>
           ))}
         </div>
-      </ScrollArea>
+      </div>
       {!isCollapsed && (
         <div className="mt-auto border-t p-3">
           <Button

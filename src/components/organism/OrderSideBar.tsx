@@ -12,7 +12,6 @@ import type React from 'react'
 import { useState } from 'react'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { ScrollArea } from '../ui/scroll-area'
 import { formatCurrency } from '@/utils/format'
 import { Separator } from '../ui/separator'
 import type { CartItem } from '@/types'
@@ -67,7 +66,7 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
 
       {!isCollapsed && (
         <>
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-scroll">
             {cart.length === 0 ? (
               <div className="text-muted-foreground flex h-40 flex-col items-center justify-center">
                 <ShoppingCart className="mb-2 h-10 w-10" />
@@ -128,7 +127,7 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           <div className="border-t p-4">
             <div className="space-y-3">
