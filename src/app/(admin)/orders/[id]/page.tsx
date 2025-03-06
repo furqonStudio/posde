@@ -17,7 +17,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -31,15 +30,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { orderData } from '@/data'
+import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
+import { OrderItem } from '@/types'
 
 // Sample order data - in a real app, this would come from an API or database
 
@@ -68,17 +61,8 @@ export default function OrderDetailsPage() {
     )
   }
 
-  // Format date
-  const formattedDate = new Date(order.date).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
   // Get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
@@ -94,7 +78,7 @@ export default function OrderDetailsPage() {
   }
 
   // Get payment status color
-  const getPaymentStatusColor = (status) => {
+  const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'Paid':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
@@ -191,17 +175,17 @@ export default function OrderDetailsPage() {
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground text-sm">
-                  Payment Method
-                </span>
-                <span className="text-sm">{order.paymentMethod}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground text-sm">
                   Payment Status
                 </span>
                 <Badge className={getPaymentStatusColor(order.paymentStatus)}>
                   {order.paymentStatus}
                 </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground text-sm">
+                  Payment Method
+                </span>
+                <span className="text-sm">{order.paymentMethod}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground text-sm">
@@ -234,7 +218,7 @@ export default function OrderDetailsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {order.items.map((item) => (
+                {order.items.map((item: OrderItem) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-right">
@@ -283,29 +267,15 @@ export default function OrderDetailsPage() {
           </CardContent>
         </Card>
 
-        {/* Cancel Order Confirmation Dialog */}
-        <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cancel Order</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to cancel this order? This action cannot
-                be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCancelDialogOpen(false)}
-              >
-                No, Keep Order
-              </Button>
-              <Button variant="destructive" onClick={handleCancelOrder}>
-                Yes, Cancel Order
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmationAlert
+          title="Cancel Order"
+          description="Are you sure you want to cancel this order? This action cannot be undone."
+          onClick={handleCancelOrder}
+          open={isCancelDialogOpen}
+          onOpenChange={setIsCancelDialogOpen}
+          actionText="Yes, Cancel Order"
+          cancelText="No, Keep Order"
+        />
       </div>
     </div>
   )
