@@ -279,7 +279,6 @@ export function ProductsTable() {
       <ConfirmationAlert
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
-        selectedName={selectedProduct}
         onClick={confirmDelete}
       />
     </div>

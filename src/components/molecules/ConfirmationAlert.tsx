@@ -10,6 +10,10 @@ import {
 } from '@/components/ui/alert-dialog'
 
 type ConfirmationProps<T> = {
+  title?: string
+  description?: string
+  cancelText?: string
+  actionText?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   selectedName?: T | null
@@ -17,25 +21,24 @@ type ConfirmationProps<T> = {
 }
 
 export const ConfirmationAlert = ({
+  title = 'Are you absolutely sure?',
+  description = 'This action cannot be undone. This will permanently delete the category',
+  cancelText = 'Cancel',
+  actionText = 'Delete',
   open,
   onOpenChange,
-  selectedName,
   onClick,
 }: ConfirmationProps<{ name: string }>) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the
-            category
-            {selectedName && ` "${selectedName.name}"`} from the database.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onClick}>Delete</AlertDialogAction>
+          <AlertDialogCancel>{cancelText}</AlertDialogCancel>
+          <AlertDialogAction onClick={onClick}>{actionText}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
