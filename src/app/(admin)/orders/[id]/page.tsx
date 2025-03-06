@@ -39,73 +39,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { orderData } from '@/data'
 
 // Sample order data - in a real app, this would come from an API or database
-const orderData = {
-  'order-1001': {
-    id: '1001',
-    date: '2023-06-15T14:30:00',
-    customer: {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '+1 234 567 890',
-    },
-    status: 'Completed',
-    paymentMethod: 'Credit Card',
-    paymentStatus: 'Paid',
-    items: [
-      { id: 1, name: 'Coffee', price: 3.99, quantity: 2 },
-      { id: 3, name: 'Chocolate Cake', price: 4.5, quantity: 1 },
-      { id: 4, name: 'Green Tea', price: 2.99, quantity: 1 },
-    ],
-    subtotal: 15.47,
-    tax: 1.55,
-    discount: 0,
-    total: 17.02,
-  },
-  'order-1002': {
-    id: '1002',
-    date: '2023-06-16T10:15:00',
-    customer: {
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phone: '+1 987 654 321',
-    },
-    status: 'Processing',
-    paymentMethod: 'Cash',
-    paymentStatus: 'Paid',
-    items: [
-      { id: 2, name: 'Sandwich', price: 5.99, quantity: 3 },
-      { id: 5, name: 'Croissant', price: 2.5, quantity: 2 },
-      { id: 8, name: 'Cheesecake', price: 4.99, quantity: 1 },
-    ],
-    subtotal: 27.96,
-    tax: 2.8,
-    discount: 2.5,
-    total: 28.26,
-  },
-  'order-1003': {
-    id: '1003',
-    date: '2023-06-16T16:45:00',
-    customer: {
-      name: 'Robert Johnson',
-      email: 'robert.j@example.com',
-      phone: '+1 555 123 456',
-    },
-    status: 'Pending',
-    paymentMethod: 'Credit Card',
-    paymentStatus: 'Pending',
-    items: [
-      { id: 6, name: 'Orange Juice', price: 3.5, quantity: 2 },
-      { id: 9, name: 'Caesar Salad', price: 6.5, quantity: 1 },
-      { id: 10, name: 'Cappuccino', price: 4.25, quantity: 2 },
-    ],
-    subtotal: 21.5,
-    tax: 2.15,
-    discount: 0,
-    total: 23.65,
-  },
-}
 
 export default function OrderDetailsPage() {
   const params = useParams()
