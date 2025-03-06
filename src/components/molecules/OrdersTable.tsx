@@ -11,6 +11,13 @@ import type { Order } from '@/types'
 import { orders as initialOrders } from '@/data'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 import { ReusableFormModal } from './ReusableFormModal'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
 
 export function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
@@ -27,6 +34,7 @@ export function OrdersTable() {
     createdAt: '',
   })
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -176,10 +184,23 @@ export function OrdersTable() {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase()
     setSearchQuery(query)
-    const filtered = orders.filter((order) =>
-      ['id', 'status', 'createdAt'].some((key) =>
-        order[key as keyof Order].toString().toLowerCase().includes(query),
-      ),
+    filterOrders(query, statusFilter)
+  }
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value)
+    filterOrders(searchQuery, value)
+  }
+
+  const filterOrders = (query: string, status: string) => {
+    const filtered = orders.filter(
+      (order) =>
+        ['id', 'status', 'createdAt'].some((key) =>
+          order[key as keyof Order].toString().toLowerCase().includes(query),
+        ) &&
+        (status !== 'all'
+          ? order.status.toLowerCase() === status.toLowerCase()
+          : true),
     )
     setFilteredOrders(filtered)
   }
@@ -228,6 +249,19 @@ export function OrdersTable() {
         onAdd={handleAdd}
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
+        filterComponent={
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Success">Success</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        }
       />
 
       <ReusableFormModal

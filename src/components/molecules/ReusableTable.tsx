@@ -40,6 +40,7 @@ type ReusableTableProps<T> = {
   onAdd: () => void
   searchQuery: string
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  filterComponent?: React.ReactNode
 }
 
 export function ReusableTable<T>({
@@ -49,6 +50,7 @@ export function ReusableTable<T>({
   onAdd,
   searchQuery,
   onSearchChange,
+  filterComponent,
 }: ReusableTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -87,6 +89,7 @@ export function ReusableTable<T>({
               onChange={onSearchChange}
               className="max-w-sm"
             />
+            {filterComponent}
             <Select
               value={table.getState().pagination.pageSize.toString()}
               onValueChange={(value) => {
