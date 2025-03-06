@@ -1,11 +1,12 @@
 'use client'
-import { CategoryManagement } from '@/components/molecules/CategoryManagement'
+import { CategoriesTable } from '@/components/molecules/CategoriesTable'
+import { OrdersTable } from '@/components/molecules/OrdersTable'
 import React from 'react'
 
 const OrderPages = () => {
   return (
     <div className="w-full overflow-scroll p-4">
-      <CategoryManagement />
+      <OrdersTable />
     </div>
   )
 }

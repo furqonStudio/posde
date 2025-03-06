@@ -1,4 +1,5 @@
 import { Product } from '@/types'
+import type { Order } from '@/types'
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -172,4 +173,28 @@ export const menuItems = [
   { icon: Package, label: 'Products', href: '/products' },
   { icon: Boxes, label: 'Categories', href: '/categories' },
   { icon: Settings, label: 'Settings', href: '/settings' },
+]
+
+export const orders: Order[] = [
+  {
+    id: 1,
+    totalPrice: 100.0,
+    status: 'Pending',
+    items: 2,
+    createdAt: '2025-03-01T12:00:00Z',
+  },
+  {
+    id: 2,
+    totalPrice: 200.0,
+    status: 'Completed',
+    items: 3,
+    createdAt: '2025-03-02T12:00:00Z',
+  },
+  {
+    id: 3,
+    totalPrice: 150.0,
+    status: 'Shipped',
+    items: 1,
+    createdAt: '2025-03-03T12:00:00Z',
+  },
 ]

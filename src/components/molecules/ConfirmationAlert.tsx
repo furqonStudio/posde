@@ -12,7 +12,7 @@ import {
 type ConfirmationProps<T> = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  selectedName: T | null
+  selectedName?: T | null
   onClick: () => void
 }
 

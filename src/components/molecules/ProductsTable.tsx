@@ -72,9 +72,9 @@ export function ProductsTable() {
     },
     {
       id: 'actions',
-      size: 50,
       enableHiding: false,
       header: 'Actions',
+      size: 80,
       cell: ({ row }) => {
         const product = row.original
         return (
@@ -173,13 +173,13 @@ export function ProductsTable() {
         onAdd={handleAdd}
       />
       {/* Add Modal */}
-      <ProductFormModal
+      {/* <ProductFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleSaveAdd}
         title="Add New Product"
         description="Enter the details for the new product."
-      />
+      /> */}
 
       {/* Edit Modal */}
       <ProductFormModal
