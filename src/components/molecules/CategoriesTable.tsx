@@ -16,6 +16,8 @@ import { ReusableFormModal } from './ReusableFormModal'
 
 export function CategoriesTable() {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [filteredCategories, setFilteredCategories] =
+    useState<Category[]>(initialCategories)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -26,6 +28,7 @@ export function CategoriesTable() {
     id: 0,
     name: '',
   })
+  const [searchQuery, setSearchQuery] = useState('')
 
   const columns: ColumnDef<Category>[] = [
     {
@@ -104,6 +107,7 @@ export function CategoriesTable() {
     } as Category
 
     setCategories([...categories, categoryToAdd])
+    setFilteredCategories([...categories, categoryToAdd])
     setIsAddModalOpen(false)
     toast.success('Category added', {
       description: `${formData.name} has been added successfully.`,
@@ -124,6 +128,7 @@ export function CategoriesTable() {
     })
 
     setCategories(updatedCategories)
+    setFilteredCategories(updatedCategories)
     setIsEditModalOpen(false)
     toast.success('Category updated', {
       description: `${formData.name} has been updated successfully.`,
@@ -145,10 +150,25 @@ export function CategoriesTable() {
       (category) => category.id !== selectedCategory.id,
     )
     setCategories(updatedCategories)
+    setFilteredCategories(updatedCategories)
     setIsDeleteModalOpen(false)
     toast.error('Category deleted', {
       description: `${selectedCategory.name} has been deleted successfully.`,
     })
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase()
+    setSearchQuery(query)
+    const filtered = categories.filter((category) =>
+      ['name'].some((key) =>
+        category[key as keyof Category]
+          .toString()
+          .toLowerCase()
+          .includes(query),
+      ),
+    )
+    setFilteredCategories(filtered)
   }
 
   const formFields = [
@@ -167,8 +187,10 @@ export function CategoriesTable() {
       <ReusableTable
         title="Categories"
         columns={columns}
-        data={categories}
+        data={filteredCategories}
         onAdd={handleAdd}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
       />
 
       <ReusableFormModal

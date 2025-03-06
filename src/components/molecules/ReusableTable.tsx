@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,8 @@ type ReusableTableProps<T> = {
   columns: ColumnDef<T>[]
   data: T[]
   onAdd: () => void
+  searchQuery: string
+  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export function ReusableTable<T>({
@@ -45,6 +47,8 @@ export function ReusableTable<T>({
   columns,
   data,
   onAdd,
+  searchQuery,
+  onSearchChange,
 }: ReusableTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -79,12 +83,8 @@ export function ReusableTable<T>({
           <div className="flex gap-4">
             <Input
               placeholder="Search..."
-              value={
-                (table.getColumn('name')?.getFilterValue() as string) ?? ''
-              }
-              onChange={(event) =>
-                table.getColumn('name')?.setFilterValue(event.target.value)
-              }
+              value={searchQuery}
+              onChange={onSearchChange}
               className="max-w-sm"
             />
             <Select

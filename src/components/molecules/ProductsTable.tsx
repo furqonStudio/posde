@@ -15,6 +15,8 @@ import { ReusableFormModal } from './ReusableFormModal'
 
 export function ProductsTable() {
   const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [filteredProducts, setFilteredProducts] =
+    useState<Product[]>(initialProducts)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -25,6 +27,7 @@ export function ProductsTable() {
     category: '',
     image: '',
   })
+  const [searchQuery, setSearchQuery] = useState('')
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -129,6 +132,7 @@ export function ProductsTable() {
     } as Product
 
     setProducts([...products, productToAdd])
+    setFilteredProducts([...products, productToAdd])
     setIsAddModalOpen(false)
     toast.success('Product added', {
       description: `${formData.name} has been added successfully.`,
@@ -150,6 +154,7 @@ export function ProductsTable() {
     })
 
     setProducts(updatedProducts)
+    setFilteredProducts(updatedProducts)
     setIsEditModalOpen(false)
     toast.success('Product updated', {
       description: `${formData.name} has been updated successfully.`,
@@ -171,10 +176,22 @@ export function ProductsTable() {
       (product) => product.id !== selectedProduct.id,
     )
     setProducts(updatedProducts)
+    setFilteredProducts(updatedProducts)
     setIsDeleteModalOpen(false)
     toast.success('Product deleted', {
       description: `${selectedProduct.name} has been deleted successfully.`,
     })
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase()
+    setSearchQuery(query)
+    const filtered = products.filter((product) =>
+      ['id', 'status', 'createdAt'].some((key) =>
+        product[key as keyof Product].toString().toLowerCase().includes(query),
+      ),
+    )
+    setFilteredProducts(filtered)
   }
 
   const formFields = [
@@ -234,8 +251,10 @@ export function ProductsTable() {
       <ReusableTable
         title="Products"
         columns={columns}
-        data={products}
+        data={filteredProducts}
         onAdd={handleAdd}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
       />
 
       <ReusableFormModal

@@ -14,6 +14,7 @@ import { ReusableFormModal } from './ReusableFormModal'
 
 export function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -25,6 +26,7 @@ export function OrdersTable() {
     items: 0,
     createdAt: '',
   })
+  const [searchQuery, setSearchQuery] = useState('')
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -120,6 +122,7 @@ export function OrdersTable() {
     } as Order
 
     setOrders([...orders, orderToAdd])
+    setFilteredOrders([...orders, orderToAdd])
     setIsAddModalOpen(false)
     toast.success('Order added', {
       description: `Order ${formData.id} has been added successfully.`,
@@ -141,6 +144,7 @@ export function OrdersTable() {
     })
 
     setOrders(updatedOrders)
+    setFilteredOrders(updatedOrders)
     setIsEditModalOpen(false)
     toast.success('Order updated', {
       description: `Order ${formData.id} has been updated successfully.`,
@@ -162,10 +166,22 @@ export function OrdersTable() {
       (order) => order.id !== selectedOrder.id,
     )
     setOrders(updatedOrders)
+    setFilteredOrders(updatedOrders)
     setIsDeleteModalOpen(false)
     toast.success('Order deleted', {
       description: `Order ${selectedOrder.id} has been deleted successfully.`,
     })
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase()
+    setSearchQuery(query)
+    const filtered = orders.filter((order) =>
+      ['id', 'status', 'createdAt'].some((key) =>
+        order[key as keyof Order].toString().toLowerCase().includes(query),
+      ),
+    )
+    setFilteredOrders(filtered)
   }
 
   const formFields = [
@@ -208,8 +224,10 @@ export function OrdersTable() {
       <ReusableTable
         title="Orders"
         columns={columns}
-        data={orders}
+        data={filteredOrders}
         onAdd={handleAdd}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
       />
 
       <ReusableFormModal
