@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 import { useState } from 'react'
-import { CategoryFormModal } from './CategoryFormModal'
 import type { Category } from '@/types'
 import { categories as initialCategories } from '@/data'
 import { ConfirmationAlert } from './ConfirmationAlert'
 import { ReusableTable } from './ReusableTable'
+import { ReusableFormModal } from './ReusableFormModal'
 
 export function CategoriesTable() {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
@@ -22,6 +22,10 @@ export function CategoriesTable() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   )
+  const [formData, setFormData] = useState<Partial<Category>>({
+    id: 0,
+    name: '',
+  })
 
   const columns: ColumnDef<Category>[] = [
     {
@@ -54,7 +58,7 @@ export function CategoriesTable() {
       id: 'actions',
       enableHiding: false,
       header: 'Actions',
-      size: 50,
+      size: 80,
       cell: ({ row }) => {
         const category = row.original
         return (
@@ -80,35 +84,40 @@ export function CategoriesTable() {
   ]
 
   const handleAdd = () => {
+    setFormData({
+      id: 0,
+      name: '',
+    })
     setIsAddModalOpen(true)
   }
 
   const handleEdit = (category: Category) => {
     setSelectedCategory(category)
+    setFormData(category)
     setIsEditModalOpen(true)
   }
 
-  const handleSaveAdd = (newCategory: Partial<Category>) => {
+  const handleSaveAdd = () => {
     const categoryToAdd = {
-      ...newCategory,
+      ...formData,
       id: categories.length + 1,
     } as Category
 
     setCategories([...categories, categoryToAdd])
     setIsAddModalOpen(false)
     toast.success('Category added', {
-      description: `${newCategory.name} has been added successfully.`,
+      description: `${formData.name} has been added successfully.`,
     })
   }
 
-  const handleSaveEdit = (updatedCategory: Partial<Category>) => {
+  const handleSaveEdit = () => {
     if (!selectedCategory) return
 
     const updatedCategories = categories.map((category) => {
       if (category.id === selectedCategory.id) {
         return {
           ...category,
-          ...updatedCategory,
+          ...formData,
         }
       }
       return category
@@ -117,7 +126,7 @@ export function CategoriesTable() {
     setCategories(updatedCategories)
     setIsEditModalOpen(false)
     toast.success('Category updated', {
-      description: `${updatedCategory.name} has been updated successfully.`,
+      description: `${formData.name} has been updated successfully.`,
     })
   }
 
@@ -142,6 +151,17 @@ export function CategoriesTable() {
     })
   }
 
+  const formFields = [
+    {
+      id: 'name',
+      label: 'Name',
+      type: 'text',
+      value: formData.name,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, name: e.target.value }),
+    },
+  ]
+
   return (
     <div className="w-full">
       <ReusableTable
@@ -151,22 +171,24 @@ export function CategoriesTable() {
         onAdd={handleAdd}
       />
 
-      <CategoryFormModal
+      <ReusableFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleSaveAdd}
         title="Add New Category"
         description="Enter the details for the new category."
+        fields={formFields}
       />
-      <CategoryFormModal
+
+      <ReusableFormModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveEdit}
-        category={selectedCategory || undefined}
         title="Edit Category"
         description="Make changes to the category details here."
+        fields={formFields}
       />
-      {/* Delete Confirmation Dialog */}
+
       <ConfirmationAlert
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
