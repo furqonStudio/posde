@@ -18,7 +18,7 @@ export const SideBar = () => {
         isCollapsed ? 'w-16' : 'w-44'
       }`}
     >
-      <div className="flex items-center justify-between border-b p-4">
+      <div className="flex items-center justify-between border-b px-4 py-3">
         {!isCollapsed && <h1 className="text-xl font-bold">POSDE</h1>}
         <Button
           variant="ghost"

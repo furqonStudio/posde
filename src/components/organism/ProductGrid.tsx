@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { SearchInput } from '../molecules/SearchInput'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
-import { categories, products } from '@/data'
+import { categories as rawCategories, products } from '@/data'
 import { ProductCard } from '../molecules/ProductCard'
 import { Product } from '@/types'
 
@@ -11,6 +11,7 @@ interface ProductGridProps {
 
 export const ProductGrid: React.FC<ProductGridProps> = ({ addToCart }) => {
   const [activeCategory, setActiveCategory] = useState('All')
+  const categories = [{ id: 'all', name: 'All' }, ...rawCategories]
 
   const filteredProducts =
     activeCategory === 'All'
@@ -19,19 +20,22 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ addToCart }) => {
 
   return (
     <div className="flex h-full flex-1 flex-col overflow-hidden">
-      <SearchInput />
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <h2 className="text-lg font-medium">Products</h2>
+        <SearchInput />
+      </div>
 
       <div className="flex-1 overflow-auto p-4">
         <Tabs defaultValue="All" className="w-full">
-          <TabsList className="mb-4 flex overflow-x-auto">
+          <TabsList className="mb-2 flex overflow-x-auto">
             {categories.map((category) => (
               <TabsTrigger
-                key={category}
-                value={category}
-                onClick={() => setActiveCategory(category)}
+                key={category.id}
+                value={category.name}
+                onClick={() => setActiveCategory(category.name)}
                 className="flex-shrink-0"
               >
-                {category}
+                {category.name}
               </TabsTrigger>
             ))}
           </TabsList>

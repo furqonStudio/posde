@@ -46,8 +46,7 @@ export const useCart = () => {
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal()
-    const tax = calculateTax(subtotal)
-    return subtotal + tax
+    return subtotal
   }
 
   return {

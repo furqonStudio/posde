@@ -1,3 +1,4 @@
+import TopBar from '@/components/molecules/TopBar'
 import { SideBar } from '@/components/organism/SideBar'
 import { ReactNode } from 'react'
 
