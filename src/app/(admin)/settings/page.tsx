@@ -61,7 +61,7 @@ export default function SettingsPage() {
       <h2 className="text-lg font-medium">Settings</h2>
 
       <Tabs defaultValue="store" className="mt-4">
-        <TabsList>
+        <TabsList className="mb-2">
           <TabsTrigger value="store">Store Settings</TabsTrigger>
           <TabsTrigger value="account">Account Settings</TabsTrigger>
         </TabsList>

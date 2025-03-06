@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import { Button } from '../ui/button'
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react'
-import { ScrollArea } from '../ui/scroll-area'
 import { menuItems } from '@/data'
 import { usePathname, useRouter } from 'next/navigation'
 
