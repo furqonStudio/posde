@@ -40,7 +40,9 @@ export function ProductsTable() {
   } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data } = await axios.get('http://localhost:8000/api/products')
+      const { data } = await axios.get(
+        'http://localhost:8000/api/products?per_page=all',
+      )
       return data?.data ?? []
     },
   })
@@ -48,7 +50,14 @@ export function ProductsTable() {
   // Mutation untuk Add/Edit/Delete
   const addProductMutation = useMutation({
     mutationFn: async (newProduct: Partial<Product>) => {
-      await axios.post('http://localhost:8000/api/products', newProduct)
+      try {
+        await axios.post('http://localhost:8000/api/products', newProduct)
+      } catch (err) {
+        console.log('🚀 ~ mutationFn: ~ err:', err)
+
+        toast.error('Failed to add product.')
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
@@ -59,10 +68,15 @@ export function ProductsTable() {
 
   const editProductMutation = useMutation({
     mutationFn: async (updatedProduct: Product) => {
-      await axios.put(
-        `http://localhost:8000/api/products/${updatedProduct.id}`,
-        updatedProduct,
-      )
+      try {
+        await axios.put(
+          `http://localhost:8000/api/products/${updatedProduct.id}`,
+          updatedProduct,
+        )
+      } catch (err) {
+        toast.error('Failed to update product.')
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
@@ -73,7 +87,12 @@ export function ProductsTable() {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: number) => {
-      await axios.delete(`http://localhost:8000/api/products/${productId}`)
+      try {
+        await axios.delete(`http://localhost:8000/api/products/${productId}`)
+      } catch (err) {
+        toast.error('Failed to delete product.')
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
@@ -150,6 +169,7 @@ export function ProductsTable() {
     },
     {
       accessorKey: 'name',
+      minSize: 200,
       header: ({ column }) => (
         <Button
           variant="ghost"
