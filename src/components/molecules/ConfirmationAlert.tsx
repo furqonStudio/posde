@@ -21,7 +21,7 @@ type ConfirmationProps<T> = {
 
 export const ConfirmationAlert = ({
   title = 'Are you absolutely sure?',
-  description = 'This action cannot be undone. This will permanently delete the category',
+  description = 'This action cannot be undone. This will permanently delete data',
   cancelText = 'Cancel',
   actionText = 'Delete',
   open,

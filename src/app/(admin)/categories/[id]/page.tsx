@@ -2,7 +2,14 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Package, Pencil, Trash2 } from 'lucide-react'
+import {
+  AlignJustify,
+  ArrowLeft,
+  List,
+  Package,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -24,15 +31,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
 import type { Category, Product } from '@/types'
+import { ReusableFormModal } from '@/components/molecules/ReusableFormModal'
 
 export default function CategoryDetailPage() {
   const params = useParams()
   const router = useRouter()
   const categoryId = params.id as string
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [formData, setFormData] = useState<Partial<Category>>({
+    id: 0,
+    name: '',
+  })
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  // Fetch category data based on ID
   const {
     data: category,
     isLoading,
@@ -47,9 +59,22 @@ export default function CategoryDetailPage() {
     },
   })
 
-  // Mutation for deleting category
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (updatedCategory: Partial<Category>) => {
+      await axios.put(
+        `http://localhost:8000/api/categories/${categoryId}`,
+        updatedCategory,
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['category', categoryId] })
+      setIsEditModalOpen(false)
+      toast.success('Category updated successfully.')
+    },
+  })
+
   const deleteCategoryMutation = useMutation({
-    mutationFn: async (categoryId: number) => {
+    mutationFn: async () => {
       await axios.delete(`http://localhost:8000/api/categories/${categoryId}`)
     },
     onSuccess: () => {
@@ -60,48 +85,24 @@ export default function CategoryDetailPage() {
     },
   })
 
-  // Handle delete category
+  const handleSaveEdit = () => {
+    updateCategoryMutation.mutate(formData)
+  }
+
   const handleDeleteCategory = () => {
-    deleteCategoryMutation.mutate(Number(categoryId))
+    deleteCategoryMutation.mutate()
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[70vh] flex-col items-center justify-center">
-        <h1 className="mb-4 text-2xl font-bold">Loading...</h1>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-[70vh] flex-col items-center justify-center">
-        <h1 className="mb-4 text-2xl font-bold">Error loading category</h1>
-        <p className="text-muted-foreground mb-6">
-          There was an error loading the category. Please try again later.
-        </p>
-        <Button onClick={() => router.push('/categories')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Categories
-        </Button>
-      </div>
-    )
-  }
-
-  if (!category) {
-    return (
-      <div className="flex h-[70vh] flex-col items-center justify-center">
-        <h1 className="mb-4 text-2xl font-bold">Category Not Found</h1>
-        <p className="text-muted-foreground mb-6">
-          The category you are looking for does not exist.
-        </p>
-        <Button onClick={() => router.push('/categories')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Categories
-        </Button>
-      </div>
-    )
-  }
+  const formFields = [
+    {
+      id: 'name',
+      label: 'Name',
+      type: 'text',
+      value: formData.name,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, name: e.target.value }),
+    },
+  ]
 
   return (
     <div className="w-full overflow-auto p-4">
@@ -111,22 +112,19 @@ export default function CategoryDetailPage() {
             <Button variant="ghost" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-lg font-medium">Category: {category.name}</h2>
+            <h2 className="text-lg font-medium">{category?.name}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/categories/edit/${category.id}`)}
-            >
+            <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>
               <Pencil className="mr-2 h-4 w-4" />
-              Edit Category
+              Edit
             </Button>
             <Button
               variant="destructive"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete Category
+              Delete
             </Button>
           </div>
         </div>
@@ -134,25 +132,25 @@ export default function CategoryDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Package className="mr-2 h-5 w-5" />
-              Category Details
+              <AlignJustify className="mr-2 h-5 w-5" />
+              Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Name</span>
-              <span className="text-sm">{category.name}</span>
+              <span className="text-sm">{category?.name}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Created At</span>
               <span className="text-sm">
-                {new Date(category.created_at).toLocaleDateString()}
+                {category && new Date(category.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Updated At</span>
               <span className="text-sm">
-                {new Date(category.updated_at).toLocaleDateString()}
+                {category && new Date(category.updated_at).toLocaleDateString()}
               </span>
             </div>
           </CardContent>
@@ -160,10 +158,12 @@ export default function CategoryDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Products</CardTitle>
+            <CardTitle className="flex items-center">
+              <Package className="mr-2 h-5 w-5" /> Products
+            </CardTitle>
             <CardDescription>
-              {category.products.length}{' '}
-              {category.products.length === 1 ? 'product' : 'products'} in this
+              {category?.products.length}{' '}
+              {category?.products.length === 1 ? 'product' : 'products'} in this
               category
             </CardDescription>
           </CardHeader>
@@ -177,7 +177,7 @@ export default function CategoryDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {category.products.map((product: Product) => (
+                {category?.products.map((product: Product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">
                       {product.name}
@@ -203,6 +203,14 @@ export default function CategoryDetailPage() {
           onOpenChange={setIsDeleteDialogOpen}
           actionText="Yes, Delete Category"
           cancelText="No, Keep Category"
+        />
+        <ReusableFormModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveEdit}
+          title="Edit Category"
+          description="Make changes to the category details here."
+          fields={formFields}
         />
       </div>
     </div>
