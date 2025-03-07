@@ -87,7 +87,8 @@ export function CategoriesTable() {
     setIsAddModalOpen(true)
   }
 
-  const handleEdit = (category: Category) => {
+  const handleEdit = (category: Category, e: React.MouseEvent) => {
+    e.stopPropagation()
     setSelectedCategory(category)
     setFormData(category)
     setIsEditModalOpen(true)
@@ -103,7 +104,8 @@ export function CategoriesTable() {
     }
   }
 
-  const handleDelete = (categoryId: number) => {
+  const handleDelete = (categoryId: number, e: React.MouseEvent) => {
+    e.stopPropagation()
     const category = categories.find((cat: Category) => cat.id === categoryId)
     if (category) {
       setSelectedCategory(category)
@@ -164,14 +166,14 @@ export function CategoriesTable() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleEdit(category)}
+              onClick={(e) => handleEdit(category, e)}
             >
               <Pencil className="h-4 w-4 text-blue-500" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleDelete(category.id)}
+              onClick={(e) => handleDelete(category.id, e)}
             >
               <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
