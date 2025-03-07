@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { ColumnDef } from '@tanstack/react-table'
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { formatCurrency } from '@/utils/format'
-import type { Product } from '@/types'
+import type { Product, SimpleCategory } from '@/types'
 import { ConfirmationAlert } from './ConfirmationAlert'
 import { ReusableTable } from './ReusableTable'
 import { ReusableFormModal } from './ReusableFormModal'
@@ -23,11 +23,13 @@ export function ProductsTable() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
-    price: 0,
+    price: null,
     category: { id: 0, name: '' },
     image: '',
+    stock: 0,
   })
   const [searchQuery, setSearchQuery] = useState('')
+  const [categories, setCategories] = useState<SimpleCategory[]>([])
 
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -47,14 +49,25 @@ export function ProductsTable() {
     },
   })
 
+  // Fetch Categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get('http://localhost:8000/api/categories')
+        setCategories(data?.data ?? [])
+      } catch (err) {
+        toast.error('Failed to fetch categories.')
+      }
+    }
+    fetchCategories()
+  }, [])
+
   // Mutation untuk Add/Edit/Delete
   const addProductMutation = useMutation({
     mutationFn: async (newProduct: Partial<Product>) => {
       try {
         await axios.post('http://localhost:8000/api/products', newProduct)
       } catch (err) {
-        console.log('🚀 ~ mutationFn: ~ err:', err)
-
         toast.error('Failed to add product.')
         throw err
       }
@@ -105,9 +118,10 @@ export function ProductsTable() {
   const handleAdd = () => {
     setFormData({
       name: '',
-      price: 0,
+      price: null,
       category: { id: 0, name: '' },
       image: '',
+      stock: 0,
     })
     setIsAddModalOpen(true)
   }
@@ -120,7 +134,15 @@ export function ProductsTable() {
   }
 
   const handleSaveAdd = () => {
-    addProductMutation.mutate(formData)
+    // addProductMutation.mutate(formData)
+    // addProductMutation.mutate({
+    //   ...formData,
+    //   category: categories.find((cat) => cat.id === formData.category?.id) || null,
+    // })
+    console.log(
+      '🚀 ~ handleSaveAdd ~ formData.category?.id:',
+      formData.category?.id,
+    )
   }
 
   const handleSaveEdit = () => {
@@ -199,6 +221,13 @@ export function ProductsTable() {
       },
     },
     {
+      accessorKey: 'stock',
+      header: 'Stock',
+      cell: ({ row }) => (
+        <div className="text-right">{row.getValue('stock')}</div>
+      ),
+    },
+    {
       accessorKey: 'category',
       header: 'Category',
       cell: ({ row }) => {
@@ -256,19 +285,12 @@ export function ProductsTable() {
         setFormData({ ...formData, price: Number(e.target.value) }),
     },
     {
-      id: 'category',
-      label: 'Category',
-      type: 'text',
-      value: formData.category?.name || 'Uncategorized',
+      id: 'stock',
+      label: 'Stock',
+      type: 'number',
+      value: formData.stock,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFormData({
-          ...formData,
-          category: {
-            ...formData.category,
-            id: formData.category?.id || 0,
-            name: e.target.value || 'Uncategorized',
-          },
-        }),
+        setFormData({ ...formData, stock: Number(e.target.value) }),
     },
   ]
 
@@ -297,8 +319,32 @@ export function ProductsTable() {
     },
   }
 
+  const selectField = {
+    id: 'category',
+    label: 'Category',
+    value: formData.category?.id || 0,
+    options: categories.map((category) => ({
+      value: category.id,
+      label: category.name,
+    })),
+    onChange: (value: number) => {
+      const selectedCategory = categories.find(
+        (category) => category.id === value,
+      )
+      setFormData({
+        ...formData,
+        category: selectedCategory || { id: 0, name: 'Uncategorized' },
+      })
+    },
+  }
+
   return (
     <div className="w-full">
+      {error && (
+        <div className="mb-4 text-red-500">
+          Error loading products: {error.message}
+        </div>
+      )}
       <ReusableTable
         title="Products"
         columns={columns}
@@ -317,6 +363,7 @@ export function ProductsTable() {
         description="Enter the details for the new product."
         fields={formFields}
         imageField={imageField}
+        selectField={selectField}
       />
       <ReusableFormModal
         isOpen={isEditModalOpen}
@@ -326,6 +373,7 @@ export function ProductsTable() {
         description="Make changes to the product details here."
         fields={formFields}
         imageField={imageField}
+        selectField={selectField}
       />
 
       <ConfirmationAlert
