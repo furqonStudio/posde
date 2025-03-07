@@ -15,11 +15,16 @@ export type Product = {
   price: number
   category: string
   image: string
+  // stock: number
+  // description: string | null
+  // created_at: string
+  // updated_at: string
 }
 
 export type Category = {
   id: number
   name: string
+  products: Product[]
 }
 
 export type Order = {

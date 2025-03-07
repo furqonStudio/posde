@@ -148,7 +148,7 @@ export function CategoriesTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue('products')}</div>,
+      cell: ({ row }) => <div>{row.original.products.length}</div>,
     },
     {
       id: 'actions',
