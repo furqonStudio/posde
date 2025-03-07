@@ -9,12 +9,17 @@ type Item = {
 export type CartItem = Item
 export type OrderItem = Item
 
+export type SimpleCategory = {
+  id: number
+  name: string
+}
+
 export type Product = {
   id: number
   name: string
   price: number
-  category: string
-  image: string
+  category: SimpleCategory | null
+  image?: string
   stock: number
   description: string | null
   created_at: string

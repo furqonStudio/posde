@@ -1,22 +1,22 @@
 'use client'
 
-import { ReusableTable } from './ReusableTable'
 import { useState } from 'react'
-import { ConfirmationAlert } from './ConfirmationAlert'
-import { toast } from 'sonner'
-import { type ColumnDef } from '@tanstack/react-table'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 import Image from 'next/image'
 import { formatCurrency } from '@/utils/format'
 import type { Product } from '@/types'
-import { products as initialProducts } from '@/data'
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { ConfirmationAlert } from './ConfirmationAlert'
+import { ReusableTable } from './ReusableTable'
 import { ReusableFormModal } from './ReusableFormModal'
 
 export function ProductsTable() {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
-  const [filteredProducts, setFilteredProducts] =
-    useState<Product[]>(initialProducts)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -24,10 +24,114 @@ export function ProductsTable() {
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     price: 0,
-    category: '',
+    category: { id: 0, name: '' },
     image: '',
   })
   const [searchQuery, setSearchQuery] = useState('')
+
+  const queryClient = useQueryClient()
+  const router = useRouter()
+
+  // Fetch Products
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data } = await axios.get('http://localhost:8000/api/products')
+      return data?.data ?? []
+    },
+  })
+
+  // Mutation untuk Add/Edit/Delete
+  const addProductMutation = useMutation({
+    mutationFn: async (newProduct: Partial<Product>) => {
+      await axios.post('http://localhost:8000/api/products', newProduct)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setIsAddModalOpen(false)
+      toast.success('Product added successfully.')
+    },
+  })
+
+  const editProductMutation = useMutation({
+    mutationFn: async (updatedProduct: Product) => {
+      await axios.put(
+        `http://localhost:8000/api/products/${updatedProduct.id}`,
+        updatedProduct,
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setIsEditModalOpen(false)
+      toast.success('Product updated successfully.')
+    },
+  })
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: number) => {
+      await axios.delete(`http://localhost:8000/api/products/${productId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setIsDeleteModalOpen(false)
+      toast.success('Product deleted successfully.')
+    },
+  })
+
+  // Handler
+  const handleAdd = () => {
+    setFormData({
+      name: '',
+      price: 0,
+      category: { id: 0, name: '' },
+      image: '',
+    })
+    setIsAddModalOpen(true)
+  }
+
+  const handleEdit = (product: Product, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedProduct(product)
+    setFormData(product)
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveAdd = () => {
+    addProductMutation.mutate(formData)
+  }
+
+  const handleSaveEdit = () => {
+    if (selectedProduct) {
+      editProductMutation.mutate({ ...selectedProduct, ...formData })
+    }
+  }
+
+  const handleDelete = (productId: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const product = products.find((prod: Product) => prod.id === productId)
+    if (product) {
+      setSelectedProduct(product)
+      setIsDeleteModalOpen(true)
+    }
+  }
+
+  const confirmDelete = () => {
+    if (selectedProduct) {
+      deleteProductMutation.mutate(selectedProduct.id)
+    }
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value.toLowerCase())
+  }
+
+  const filteredProducts = products.filter((product: Product) =>
+    product.name.toLowerCase().includes(searchQuery),
+  )
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -77,7 +181,13 @@ export function ProductsTable() {
     {
       accessorKey: 'category',
       header: 'Category',
-      cell: ({ row }) => <div>{row.getValue('category')}</div>,
+      cell: ({ row }) => {
+        const category = row.getValue('category') as {
+          id: number
+          name: string
+        }
+        return <div>{category?.name || 'Uncategorized'}</div>
+      },
     },
     {
       id: 'actions',
@@ -91,14 +201,14 @@ export function ProductsTable() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleEdit(product)}
+              onClick={(e) => handleEdit(product, e)}
             >
               <Pencil className="h-4 w-4 text-blue-500" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleDelete(product.id)}
+              onClick={(e) => handleDelete(product.id, e)}
             >
               <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
@@ -107,92 +217,6 @@ export function ProductsTable() {
       },
     },
   ]
-
-  const handleAdd = () => {
-    setFormData({
-      name: '',
-      price: 0,
-      category: '',
-      image: '',
-    })
-    setIsAddModalOpen(true)
-  }
-
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product)
-    setFormData(product)
-    setIsEditModalOpen(true)
-  }
-
-  const handleSaveAdd = () => {
-    const productToAdd = {
-      ...formData,
-      id: products.length + 1,
-      price: Number(formData.price),
-    } as Product
-
-    setProducts([...products, productToAdd])
-    setFilteredProducts([...products, productToAdd])
-    setIsAddModalOpen(false)
-    toast.success('Product added', {
-      description: `${formData.name} has been added successfully.`,
-    })
-  }
-
-  const handleSaveEdit = () => {
-    if (!selectedProduct) return
-
-    const updatedProducts = products.map((product) => {
-      if (product.id === selectedProduct.id) {
-        return {
-          ...product,
-          ...formData,
-          price: Number(formData.price),
-        }
-      }
-      return product
-    })
-
-    setProducts(updatedProducts)
-    setFilteredProducts(updatedProducts)
-    setIsEditModalOpen(false)
-    toast.success('Product updated', {
-      description: `${formData.name} has been updated successfully.`,
-    })
-  }
-
-  const handleDelete = (productId: number) => {
-    const product = products.find((product) => product.id === productId)
-    if (product) {
-      setSelectedProduct(product)
-      setIsDeleteModalOpen(true)
-    }
-  }
-
-  const confirmDelete = () => {
-    if (!selectedProduct) return
-
-    const updatedProducts = products.filter(
-      (product) => product.id !== selectedProduct.id,
-    )
-    setProducts(updatedProducts)
-    setFilteredProducts(updatedProducts)
-    setIsDeleteModalOpen(false)
-    toast.success('Product deleted', {
-      description: `${selectedProduct.name} has been deleted successfully.`,
-    })
-  }
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
-    const filtered = products.filter((product) =>
-      ['id', 'status', 'createdAt'].some((key) =>
-        product[key as keyof Product].toString().toLowerCase().includes(query),
-      ),
-    )
-    setFilteredProducts(filtered)
-  }
 
   const formFields = [
     {
@@ -215,9 +239,16 @@ export function ProductsTable() {
       id: 'category',
       label: 'Category',
       type: 'text',
-      value: formData.category,
+      value: formData.category?.name || 'Uncategorized',
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFormData({ ...formData, category: e.target.value }),
+        setFormData({
+          ...formData,
+          category: {
+            ...formData.category,
+            id: formData.category?.id || 0,
+            name: e.target.value || 'Uncategorized',
+          },
+        }),
     },
   ]
 
@@ -255,6 +286,7 @@ export function ProductsTable() {
         onAdd={handleAdd}
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
+        onRowClick={(row) => router.push(`/products/${row.id}`)}
       />
 
       <ReusableFormModal
