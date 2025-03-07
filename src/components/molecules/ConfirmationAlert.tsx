@@ -16,7 +16,6 @@ type ConfirmationProps<T> = {
   actionText?: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  selectedName?: T | null
   onClick: () => void
 }
 

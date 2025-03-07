@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,6 +41,7 @@ type ReusableTableProps<T> = {
   searchQuery: string
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   filterComponent?: React.ReactNode
+  onRowClick?: (row: T) => void
 }
 
 export function ReusableTable<T>({
@@ -51,6 +52,7 @@ export function ReusableTable<T>({
   searchQuery,
   onSearchChange,
   filterComponent,
+  onRowClick,
 }: ReusableTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -142,6 +144,8 @@ export function ReusableTable<T>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={() => onRowClick && onRowClick(row.original)}
+                  className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="border-x">

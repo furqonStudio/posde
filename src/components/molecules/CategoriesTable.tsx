@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -28,6 +29,7 @@ export function CategoriesTable() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   // Fetch Categories
   const {
@@ -199,6 +201,7 @@ export function CategoriesTable() {
         onAdd={handleAdd}
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
+        onRowClick={(row) => router.push(`/categories/${row.id}`)}
       />
 
       <ReusableFormModal
@@ -222,7 +225,6 @@ export function CategoriesTable() {
       <ConfirmationAlert
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
-        selectedName={selectedCategory}
         onClick={confirmDelete}
       />
     </div>
