@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
+import { ReactQueryProvider } from '@/components/molecules/ReactQueryProvider'
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -20,8 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.className} antialiased`}>
-        <Toaster richColors />
-        {children}
+        <ReactQueryProvider>
+          <Toaster richColors />
+          {children}
+        </ReactQueryProvider>
       </body>
     </html>
   )

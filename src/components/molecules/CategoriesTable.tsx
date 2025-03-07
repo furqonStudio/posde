@@ -1,23 +1,20 @@
 'use client'
 
-import { type ColumnDef } from '@tanstack/react-table'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-
 import { toast } from 'sonner'
 
-import { useState } from 'react'
 import type { Category } from '@/types'
-import { categories as initialCategories } from '@/data'
 import { ConfirmationAlert } from './ConfirmationAlert'
 import { ReusableTable } from './ReusableTable'
 import { ReusableFormModal } from './ReusableFormModal'
 
 export function CategoriesTable() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [filteredCategories, setFilteredCategories] =
-    useState<Category[]>(initialCategories)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -29,6 +26,102 @@ export function CategoriesTable() {
     name: '',
   })
   const [searchQuery, setSearchQuery] = useState('')
+
+  const queryClient = useQueryClient()
+
+  // Fetch Categories
+  const {
+    data: categories = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data } = await axios.get('http://localhost:8000/api/categories')
+      return data?.data ?? []
+    },
+  })
+
+  // Mutation untuk Add/Edit/Delete
+  const addCategoryMutation = useMutation({
+    mutationFn: async (newCategory: Partial<Category>) => {
+      await axios.post('http://localhost:8000/api/categories', newCategory)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      setIsAddModalOpen(false)
+      toast.success('Category added successfully.')
+    },
+  })
+
+  const editCategoryMutation = useMutation({
+    mutationFn: async (updatedCategory: Category) => {
+      await axios.put(
+        `http://localhost:8000/api/categories/${updatedCategory.id}`,
+        updatedCategory,
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      setIsEditModalOpen(false)
+      toast.success('Category updated successfully.')
+    },
+  })
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: number) => {
+      await axios.delete(`http://localhost:8000/api/categories/${categoryId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      setIsDeleteModalOpen(false)
+      toast.error('Category deleted successfully.')
+    },
+  })
+
+  // Handler
+  const handleAdd = () => {
+    setFormData({ id: 0, name: '' })
+    setIsAddModalOpen(true)
+  }
+
+  const handleEdit = (category: Category) => {
+    setSelectedCategory(category)
+    setFormData(category)
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveAdd = () => {
+    addCategoryMutation.mutate(formData)
+  }
+
+  const handleSaveEdit = () => {
+    if (selectedCategory) {
+      editCategoryMutation.mutate({ ...selectedCategory, ...formData })
+    }
+  }
+
+  const handleDelete = (categoryId: number) => {
+    const category = categories.find((cat: Category) => cat.id === categoryId)
+    if (category) {
+      setSelectedCategory(category)
+      setIsDeleteModalOpen(true)
+    }
+  }
+
+  const confirmDelete = () => {
+    if (selectedCategory) {
+      deleteCategoryMutation.mutate(selectedCategory.id)
+    }
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value.toLowerCase())
+  }
+
+  const filteredCategories = categories.filter((category: Category) =>
+    category.name.toLowerCase().includes(searchQuery),
+  )
 
   const columns: ColumnDef<Category>[] = [
     {
@@ -85,91 +178,6 @@ export function CategoriesTable() {
       },
     },
   ]
-
-  const handleAdd = () => {
-    setFormData({
-      id: 0,
-      name: '',
-    })
-    setIsAddModalOpen(true)
-  }
-
-  const handleEdit = (category: Category) => {
-    setSelectedCategory(category)
-    setFormData(category)
-    setIsEditModalOpen(true)
-  }
-
-  const handleSaveAdd = () => {
-    const categoryToAdd = {
-      ...formData,
-      id: categories.length + 1,
-    } as Category
-
-    setCategories([...categories, categoryToAdd])
-    setFilteredCategories([...categories, categoryToAdd])
-    setIsAddModalOpen(false)
-    toast.success('Category added', {
-      description: `${formData.name} has been added successfully.`,
-    })
-  }
-
-  const handleSaveEdit = () => {
-    if (!selectedCategory) return
-
-    const updatedCategories = categories.map((category) => {
-      if (category.id === selectedCategory.id) {
-        return {
-          ...category,
-          ...formData,
-        }
-      }
-      return category
-    })
-
-    setCategories(updatedCategories)
-    setFilteredCategories(updatedCategories)
-    setIsEditModalOpen(false)
-    toast.success('Category updated', {
-      description: `${formData.name} has been updated successfully.`,
-    })
-  }
-
-  const handleDelete = (categoryId: number) => {
-    const category = categories.find((category) => category.id === categoryId)
-    if (category) {
-      setSelectedCategory(category)
-      setIsDeleteModalOpen(true)
-    }
-  }
-
-  const confirmDelete = () => {
-    if (!selectedCategory) return
-
-    const updatedCategories = categories.filter(
-      (category) => category.id !== selectedCategory.id,
-    )
-    setCategories(updatedCategories)
-    setFilteredCategories(updatedCategories)
-    setIsDeleteModalOpen(false)
-    toast.error('Category deleted', {
-      description: `${selectedCategory.name} has been deleted successfully.`,
-    })
-  }
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
-    const filtered = categories.filter((category) =>
-      ['name'].some((key) =>
-        category[key as keyof Category]
-          .toString()
-          .toLowerCase()
-          .includes(query),
-      ),
-    )
-    setFilteredCategories(filtered)
-  }
 
   const formFields = [
     {
