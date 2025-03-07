@@ -77,7 +77,7 @@ export function CategoriesTable() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       setIsDeleteModalOpen(false)
-      toast.error('Category deleted successfully.')
+      toast.success('Category deleted successfully.')
     },
   })
 
