@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import { AlignJustify, ArrowLeft, Package, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,84 +23,63 @@ import {
 } from '@/components/ui/table'
 import { toast } from 'sonner'
 import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
-import { ReusableFormModal } from '@/components/molecules/ReusableFormModal'
 import type { Category, Product } from '@/types'
 
 export default function CategoryDetailPage() {
   const router = useRouter()
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { id } = useParams()
+  const queryClient = useQueryClient()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
-  // Data Dummy
-  const [category, setCategory] = useState<Category>({
-    id: 1,
-    name: 'Electronics',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    products: [
-      {
-        id: 1,
-        name: 'Laptop',
-        price: 1200,
-        stock: 10,
-        description: 'A high-performance laptop',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        category: { id: 1, name: 'test' },
-      },
-      {
-        id: 2,
-        name: 'Smartphone',
-        price: 800,
-        stock: 15,
-        description: 'A latest model smartphone',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        category: { id: 1, name: 'test' },
-      },
-      {
-        id: 3,
-        name: 'Headphones',
-        price: 150,
-        stock: 25,
-        description: 'Noise-cancelling headphones',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        category: { id: 1, name: 'test' },
-      },
-    ],
-  })
+  // Fetch kategori berdasarkan id
+  const {
+    data: category,
+    isLoading,
+    isError,
+  } = useQuery<Category>({
+    queryKey: ['category', id],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `http://localhost:8000/api/categories/${id}`,
+      )
+      console.log('🚀 ~ queryFn: ~ data.data:', data.data)
 
-  const [formData, setFormData] = useState<Partial<Category>>({
-    id: category.id,
-    name: category.name,
-  })
-
-  const handleSaveEdit = () => {
-    setCategory((prev) => ({
-      ...prev,
-      name: formData.name || prev.name,
-      updated_at: new Date().toISOString(),
-    }))
-    setIsEditModalOpen(false)
-    toast.success('Category updated successfully.')
-  }
-
-  const handleDeleteCategory = () => {
-    toast.success('Category deleted successfully.')
-    router.push('/categories')
-  }
-
-  const formFields = [
-    {
-      id: 'name',
-      label: 'Name',
-      type: 'text',
-      value: formData.name,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFormData({ ...formData, name: e.target.value }),
+      return data.data
     },
-  ]
+  })
+
+  // Mutasi untuk menghapus kategori
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async () => {
+      await axios.delete(`http://localhost:8000/api/categories/${id}`)
+    },
+    onSuccess: () => {
+      toast.success('Category deleted successfully.')
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      router.push('/categories')
+    },
+    onError: () => {
+      toast.error('Failed to delete category.')
+    },
+  })
+
+  // Mutasi untuk menghapus produk dari kategori
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: number) => {
+      await axios.delete(`http://localhost:8000/api/products/${productId}`)
+    },
+    onSuccess: () => {
+      toast.success('Product deleted successfully.')
+      queryClient.invalidateQueries({ queryKey: ['category', id] })
+    },
+    onError: () => {
+      toast.error('Failed to delete product.')
+    },
+  })
+
+  if (isLoading) return <p>Loading...</p>
+  if (isError || !category) return <p>Failed to load category.</p>
 
   return (
     <div className="w-full overflow-auto p-4">
@@ -111,12 +92,15 @@ export default function CategoryDetailPage() {
             <h2 className="text-lg font-medium">{category.name}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/categories/edit/${category.id}`)}
+            >
               <Pencil className="mr-2 h-4 w-4" />
               Edit
             </Button>
             <Button
-              variant="destructive"
+              variant="outline"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -170,19 +154,36 @@ export default function CategoryDetailPage() {
                   <TableHead>Product</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {category.products.map((product: Product) => (
-                  <TableRow key={product.id}>
+                  <TableRow
+                    key={product.id}
+                    className="cursor-pointer hover:bg-gray-100"
+                    onClick={() => router.push(`/products/${product.id}`)}
+                  >
                     <TableCell className="font-medium">
                       {product.name}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${product.price ? product.price.toFixed(2) : '0.00'}
+                      ${product.price}
                     </TableCell>
                     <TableCell className="text-right">
                       {product.stock}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setProductToDelete(product)
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -191,23 +192,32 @@ export default function CategoryDetailPage() {
           </CardContent>
         </Card>
 
+        {/* Konfirmasi Hapus Kategori */}
         <ConfirmationAlert
           title="Delete Category"
           description="Are you sure you want to delete this category? This action cannot be undone."
-          onClick={handleDeleteCategory}
+          onClick={() => deleteCategoryMutation.mutate()}
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
           actionText="Yes, Delete Category"
           cancelText="No, Keep Category"
         />
-        <ReusableFormModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSave={handleSaveEdit}
-          title="Edit Category"
-          description="Make changes to the category details here."
-          fields={formFields}
-        />
+
+        {/* Konfirmasi Hapus Produk */}
+        {productToDelete && (
+          <ConfirmationAlert
+            title="Delete Product"
+            description={`Are you sure you want to delete ${productToDelete.name}? This action cannot be undone.`}
+            onClick={() => {
+              deleteProductMutation.mutate(productToDelete.id)
+              setProductToDelete(null)
+            }}
+            open={Boolean(productToDelete)}
+            onOpenChange={() => setProductToDelete(null)}
+            actionText="Yes, Delete Product"
+            cancelText="No, Keep Product"
+          />
+        )}
       </div>
     </div>
   )
