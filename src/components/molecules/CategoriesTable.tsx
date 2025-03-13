@@ -123,10 +123,13 @@ export function CategoriesTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.original.products.length}</div>,
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.products.length}</div>
+      ),
     },
     {
       accessorKey: 'created_at',
+      minSize: 170,
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -136,11 +139,12 @@ export function CategoriesTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue('created_at')}</div>,
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue('created_at')}</div>
+      ),
     },
     {
       id: 'actions',
-      enableHiding: false,
       header: 'Actions',
       size: 80,
       cell: ({ row }) => {
@@ -176,6 +180,7 @@ export function CategoriesTable() {
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
           onAdd={() => router.push('/categories/add')}
+          onRowClick={(row) => router.push(`/categories/${row.id}`)}
         />
       )}
 

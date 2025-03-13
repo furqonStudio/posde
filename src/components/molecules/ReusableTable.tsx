@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,9 +38,10 @@ type ReusableTableProps<T> = {
   columns: ColumnDef<T>[]
   data: T[]
   onAdd: () => void
-  searchQuery: string
-  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  searchQuery?: string
+  onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   filterComponent?: React.ReactNode
+  onRowClick?: (row: T) => void
 }
 
 export function ReusableTable<T>({
@@ -48,9 +49,10 @@ export function ReusableTable<T>({
   columns,
   data,
   onAdd,
-  searchQuery,
+  searchQuery = '',
   onSearchChange,
   filterComponent,
+  onRowClick,
 }: ReusableTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -83,12 +85,14 @@ export function ReusableTable<T>({
 
         <div className="flex items-center justify-between">
           <div className="flex gap-4">
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={onSearchChange}
-              className="max-w-sm"
-            />
+            {onSearchChange && (
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={onSearchChange}
+                className="max-w-sm"
+              />
+            )}
             {filterComponent}
             <Select
               value={table.getState().pagination.pageSize.toString()}
@@ -142,6 +146,8 @@ export function ReusableTable<T>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className="cursor-pointer hover:bg-gray-100"
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="border-x">
