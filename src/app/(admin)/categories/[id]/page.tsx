@@ -30,9 +30,7 @@ export default function CategoryDetailPage() {
   const { id } = useParams()
   const queryClient = useQueryClient()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
-  // Fetch kategori berdasarkan id
   const {
     data: category,
     isLoading,
@@ -49,7 +47,6 @@ export default function CategoryDetailPage() {
     },
   })
 
-  // Mutasi untuk menghapus kategori
   const deleteCategoryMutation = useMutation({
     mutationFn: async () => {
       await axios.delete(`http://localhost:8000/api/categories/${id}`)
@@ -61,20 +58,6 @@ export default function CategoryDetailPage() {
     },
     onError: () => {
       toast.error('Failed to delete category.')
-    },
-  })
-
-  // Mutasi untuk menghapus produk dari kategori
-  const deleteProductMutation = useMutation({
-    mutationFn: async (productId: number) => {
-      await axios.delete(`http://localhost:8000/api/products/${productId}`)
-    },
-    onSuccess: () => {
-      toast.success('Product deleted successfully.')
-      queryClient.invalidateQueries({ queryKey: ['category', id] })
-    },
-    onError: () => {
-      toast.error('Failed to delete product.')
     },
   })
 
@@ -154,7 +137,6 @@ export default function CategoryDetailPage() {
                   <TableHead>Product</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -173,18 +155,6 @@ export default function CategoryDetailPage() {
                     <TableCell className="text-right">
                       {product.stock}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setProductToDelete(product)
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -202,22 +172,6 @@ export default function CategoryDetailPage() {
           actionText="Yes, Delete Category"
           cancelText="No, Keep Category"
         />
-
-        {/* Konfirmasi Hapus Produk */}
-        {productToDelete && (
-          <ConfirmationAlert
-            title="Delete Product"
-            description={`Are you sure you want to delete ${productToDelete.name}? This action cannot be undone.`}
-            onClick={() => {
-              deleteProductMutation.mutate(productToDelete.id)
-              setProductToDelete(null)
-            }}
-            open={Boolean(productToDelete)}
-            onOpenChange={() => setProductToDelete(null)}
-            actionText="Yes, Delete Product"
-            cancelText="No, Keep Product"
-          />
-        )}
       </div>
     </div>
   )
