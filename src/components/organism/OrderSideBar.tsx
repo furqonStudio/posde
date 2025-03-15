@@ -12,7 +12,6 @@ import type React from 'react'
 import { useState } from 'react'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { formatCurrency } from '@/utils/format'
 import { Separator } from '../ui/separator'
 import type { CartItem } from '@/types'
 
@@ -90,7 +89,7 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
                           {item.name}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          {formatCurrency(item.price)}
+                          {item.price}
                         </p>
                       </div>
                     </div>
@@ -134,12 +133,12 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
               <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(subtotal)}</span>
+                  <span>{subtotal}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{total}</span>
                 </div>
               </div>
 

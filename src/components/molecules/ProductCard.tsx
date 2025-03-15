@@ -1,6 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Product } from '@/types'
-import { formatCurrency } from '@/utils/format'
 import Image from 'next/image'
 
 interface ProductCardProps {
@@ -25,9 +24,7 @@ export function ProductCard({ product, addToCart }: ProductCardProps) {
           />
           <div>
             <h3 className="text-center text-sm font-medium">{product.name}</h3>
-            <p className="text-primary font-bold">
-              {formatCurrency(product.price)}
-            </p>
+            <p className="text-primary font-bold">{product.price}</p>
           </div>
         </div>
       </CardContent>

@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import type { Order } from '@/types'
 import { orders as initialOrders } from '@/data'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
-import { ReusableFormModal } from '../ReusableFormModal'
 import {
   Select,
   SelectContent,
@@ -29,6 +28,12 @@ export function OrdersTable() {
   const [statusFilter, setStatusFilter] = useState('all')
 
   const router = useRouter()
+
+  const handleEdit = (order: Order, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedOrder(order)
+    setIsEditModalOpen(true)
+  }
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -78,27 +83,18 @@ export function OrdersTable() {
         const order = row.original
         return (
           <div className="flex justify-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => handleEdit(order)}>
-              <Pencil className="h-4 w-4 text-blue-500" />
-            </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleDelete(order.id)}
+              onClick={(e) => handleEdit(order, e)}
             >
-              <Trash2 className="h-4 w-4 text-red-500" />
+              <Pencil className="h-4 w-4 text-blue-500" />
             </Button>
           </div>
         )
       },
     },
   ]
-
-  const handleEdit = (order: Order, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setSelectedOrder(order)
-    setIsEditModalOpen(true)
-  }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase()

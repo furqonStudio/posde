@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog'
-import { formatCurrency } from '@/utils/format'
 import { Button } from '../ui/button'
 import { Banknote, CreditCard, Receipt } from 'lucide-react'
 import { Input } from '../ui/input'
@@ -41,7 +40,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
         <div className="space-y-4">
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>
-            <span>{formatCurrency(total)}</span>
+            <span>{total}</span>
           </div>
 
           <div className="space-y-2">
@@ -73,7 +72,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
           {cashAmount && (
             <div className="flex justify-between font-medium">
               <span>Change</span>
-              <span>{formatCurrency(calculateChange())}</span>
+              <span>{calculateChange()}</span>
             </div>
           )}
         </div>
