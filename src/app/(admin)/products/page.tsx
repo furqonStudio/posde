@@ -1,4 +1,4 @@
-import { ProductsTable } from '@/components/molecules/ProductsTable'
+import { ProductsTable } from '@/components/molecules/products/ProductsTable'
 import React from 'react'
 
 const page = () => {

@@ -10,11 +10,11 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import Image from 'next/image'
-import { formatCurrency } from '@/utils/format'
 import type { Product, SimpleCategory } from '@/types'
-import { ConfirmationAlert } from './ConfirmationAlert'
-import { ReusableTable } from './ReusableTable'
-import { ReusableFormModal } from './ReusableFormModal'
+import { ConfirmationAlert } from '../ConfirmationAlert'
+import { ReusableTable } from '../ReusableTable'
+import { ReusableFormModal } from '../ReusableFormModal'
+import { formatIndonesianCurrency } from '@/utils/format'
 
 export function ProductsTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -214,11 +214,11 @@ export function ProductsTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => {
-        const price = Number.parseFloat(row.getValue('price'))
-        const formatted = formatCurrency(price)
-        return <div className="text-right font-medium">{formatted}</div>
-      },
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatIndonesianCurrency(row.getValue('price'))}
+        </div>
+      ),
     },
     {
       accessorKey: 'stock',

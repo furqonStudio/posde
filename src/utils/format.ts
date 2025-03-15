@@ -18,26 +18,30 @@ export const formatIndonesianCurrency = (amount: number): string => {
 /**
  * Converts a timestamp into a 24-hour WIB (Western Indonesian Time) format.
  *
- * @param {string} dateTime - A timestamp in the format "YYYY-MM-DD HH:mm:ss".
- * @returns {string} - A formatted string, e.g., "05:55 WIB, March 4, 2025".
+ * Mengonversi timestamp ke dalam format 24 jam WIB (Waktu Indonesia Barat).
+ *
+ * @param {string} dateTime - A timestamp in the format "YYYY-MM-DD HH:mm:ss". (Timestamp dalam format "YYYY-MM-DD HH:mm:ss".)
+ * @returns {string} - A formatted string, e.g., "05:55 WIB, 4 Maret 2025". (String yang diformat, contoh: "05:55 WIB, 4 Maret 2025".)
  *
  * @example
- * console.log(formatDateTime("2025-03-04 05:55:47")); // "05:55 WIB, March 4, 2025"
+ * console.log(formatDateTime("2025-03-04 05:55:47")); // "12:55 WIB, 4 Maret 2025"
  */
 export const formatIndonesianDateTime = (dateTime: string): string => {
-  const date = new Date(dateTime)
+  const date = new Date(dateTime + ' UTC')
 
-  const time = date.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-
-  const formattedDate = date.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-
-  return `${time} WIB, ${formattedDate}`
+  return (
+    date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }) +
+    ' WIB, ' +
+    date.toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  )
 }
