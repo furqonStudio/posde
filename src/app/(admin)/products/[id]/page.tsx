@@ -14,15 +14,23 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { formatIndonesianDateTime } from '@/utils/format'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
+import { EditProductFormModal } from '@/components/molecules/products/EditProductFormModal'
+import { useState } from 'react'
+import { Product } from '@/types'
+import { toast } from 'sonner'
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const productId = params.id as string
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const queryClient = useQueryClient()
 
-  // Fetch product data using react-query
   const {
     data: product,
     isLoading,
@@ -36,6 +44,33 @@ export default function ProductDetailPage() {
       return data?.data
     },
   })
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async () => {
+      await axios.delete(`http://localhost:8000/api/products/${productId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setIsDeleteDialogOpen(false)
+      toast.success('Product deleted successfully.')
+      router.push('/products')
+    },
+  })
+
+  const handleEdit = () => {
+    if (product) {
+      setSelectedProduct(product)
+    }
+    setIsEditModalOpen(true)
+  }
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDeleteCategory = () => {
+    deleteProductMutation.mutate()
+  }
 
   if (isLoading) {
     return (
@@ -61,7 +96,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl p-4">
+    <div className="w-full overflow-auto p-4">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={() => router.back()}>
@@ -70,11 +105,11 @@ export default function ProductDetailPage() {
           <h2 className="text-xl font-medium">Product Details</h2>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleEdit}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </Button>
-          <Button variant="destructive">
+          <Button variant="outline" onClick={handleDelete}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
@@ -102,7 +137,6 @@ export default function ProductDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Product Details */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -159,6 +193,21 @@ export default function ProductDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        <ConfirmationAlert
+          title="Delete Product"
+          description="Are you sure you want to delete this product? This action cannot be undone."
+          onClick={handleDeleteCategory}
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          actionText="Yes, Delete Product"
+          cancelText="No, Keep Product"
+        />
+        <EditProductFormModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          product={selectedProduct}
+        />
       </div>
     </div>
   )

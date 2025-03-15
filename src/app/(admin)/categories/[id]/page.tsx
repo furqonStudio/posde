@@ -54,7 +54,6 @@ export default function CategoryDetailPage() {
       return data?.data
     },
   })
-  console.log('🚀 ~ CategoryDetailPage ~ categoryId:', categoryId)
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async () => {
