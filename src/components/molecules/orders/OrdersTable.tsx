@@ -147,36 +147,28 @@ export function OrdersTable() {
 
   return (
     <div className="w-full">
-      {isLoading ? (
-        <div className="flex h-40 items-center justify-center">
-          <p className="text-muted-foreground">Loading orders...</p>
-        </div>
-      ) : (
-        <ReusableTable
-          title="Orders"
-          columns={columns}
-          data={filteredOrders}
-          onAdd={() => router.push('/menu')}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearch}
-          filterComponent={
-            <Select
-              value={statusFilter}
-              onValueChange={handleStatusFilterChange}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          }
-        />
-      )}
+      <ReusableTable
+        title="Orders"
+        columns={columns}
+        data={filteredOrders}
+        onAdd={() => router.push('/menu')}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        filterComponent={
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+        onRowClick={(row) => router.push(`/orders/${row.id}`)}
+      />
 
       <EditOrderFormModal
         isOpen={isEditModalOpen}

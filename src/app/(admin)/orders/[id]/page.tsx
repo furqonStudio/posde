@@ -9,6 +9,7 @@ import {
   Download,
   Edit,
   Package,
+  Pencil,
   User,
   X,
 } from 'lucide-react'
@@ -32,7 +33,11 @@ import {
 } from '@/components/ui/table'
 import { orderData } from '@/data'
 import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
-import { OrderItem } from '@/types'
+import { Order, OrderItem } from '@/types'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { EditOrderFormModal } from '@/components/molecules/orders/EditOrderFormModal'
+import { formatIndonesianDateTime } from '@/utils/format'
 
 // Sample order data - in a real app, this would come from an API or database
 
@@ -40,25 +45,31 @@ export default function OrderDetailPage() {
   const params = useParams()
   const router = useRouter()
   const orderId = params.id as string
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const queryClient = useQueryClient()
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
 
-  // Get order data based on ID
-  const order = orderData[`order-${orderId}`]
+  const {
+    data: order,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['order', orderId],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `http://localhost:8000/api/orders/${orderId}`,
+      )
+      return data?.data
+    },
+  })
+  console.log('🚀 ~ OrderDetailPage ~ order:', order)
 
-  // Handle if order not found
-  if (!order) {
-    return (
-      <div className="flex h-[70vh] flex-col items-center justify-center">
-        <h1 className="mb-4 text-2xl font-bold">Order Not Found</h1>
-        <p className="text-muted-foreground mb-6">
-          The order you are looking for does not exist.
-        </p>
-        <Button onClick={() => router.push('/orders')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Orders
-        </Button>
-      </div>
-    )
+  const handleEdit = () => {
+    if (order) {
+      setSelectedOrder(order)
+    }
+    setIsEditModalOpen(true)
   }
 
   // Get status color
@@ -104,6 +115,21 @@ export default function OrderDetailPage() {
     window.print()
   }
 
+  if (error || !order) {
+    return (
+      <div className="flex h-[70vh] flex-col items-center justify-center">
+        <h1 className="mb-4 text-2xl font-bold">Product Not Found</h1>
+        <p className="text-muted-foreground mb-6">
+          The product you are looking for does not exist.
+        </p>
+        <Button onClick={() => router.push('/products')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Products
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto p-4">
       <div className="space-y-4">
@@ -112,14 +138,18 @@ export default function OrderDetailPage() {
             <Button variant="ghost" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-lg font-medium">Order #{order.id}</h2>
+            <h2 className="text-lg font-medium">Order #{order?.id}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={handlePrintReceipt}>
               <Download className="mr-2 h-4 w-4" />
               Print Receipt
             </Button>
-            {order.status !== 'Cancelled' && (
+            <Button variant="outline" onClick={handleEdit}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+            {order.status !== 'cancelled' && (
               <Button
                 variant="destructive"
                 onClick={() => setIsCancelDialogOpen(true)}
@@ -151,7 +181,7 @@ export default function OrderDetailPage() {
                   Order Date
                 </span>
                 <span className="text-sm">
-                  {new Date(order.date).toLocaleDateString()}
+                  {formatIndonesianDateTime(order.created_at)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -159,7 +189,7 @@ export default function OrderDetailPage() {
                   Order Time
                 </span>
                 <span className="text-sm">
-                  {new Date(order.date).toLocaleTimeString()}
+                  {formatIndonesianDateTime(order.created_at)}
                 </span>
               </div>
             </CardContent>
@@ -191,9 +221,7 @@ export default function OrderDetailPage() {
                 <span className="text-muted-foreground text-sm">
                   Total Amount
                 </span>
-                <span className="text-sm font-bold">
-                  ${order.total.toFixed(2)}
-                </span>
+                <span className="text-sm font-bold">{order.total}</span>
               </div>
             </CardContent>
           </Card>
@@ -220,15 +248,15 @@ export default function OrderDetailPage() {
               <TableBody>
                 {order.items.map((item: OrderItem) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-right">
-                      ${item.price.toFixed(2)}
+                    <TableCell className="font-medium">
+                      {item.product.name}
                     </TableCell>
+                    <TableCell className="text-right">${item.price}</TableCell>
                     <TableCell className="text-right">
                       {item.quantity}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${item.price * item.quantity}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -237,20 +265,18 @@ export default function OrderDetailPage() {
                 <TableRow>
                   <TableCell colSpan={3}>Subtotal</TableCell>
                   <TableCell className="text-right">
-                    ${order.subtotal.toFixed(2)}
+                    ${order.subtotal}
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell colSpan={3}>Tax</TableCell>
-                  <TableCell className="text-right">
-                    ${order.tax.toFixed(2)}
-                  </TableCell>
+                  <TableCell className="text-right">${order.tax}</TableCell>
                 </TableRow>
                 {order.discount > 0 && (
                   <TableRow>
                     <TableCell colSpan={3}>Discount</TableCell>
                     <TableCell className="text-right">
-                      -${order.discount.toFixed(2)}
+                      -${order.discount}
                     </TableCell>
                   </TableRow>
                 )}
@@ -259,7 +285,7 @@ export default function OrderDetailPage() {
                     Total
                   </TableCell>
                   <TableCell className="text-right font-bold">
-                    ${order.total.toFixed(2)}
+                    {order.total_price}
                   </TableCell>
                 </TableRow>
               </TableFooter>
@@ -275,6 +301,12 @@ export default function OrderDetailPage() {
           onOpenChange={setIsCancelDialogOpen}
           actionText="Yes, Cancel Order"
           cancelText="No, Keep Order"
+        />
+
+        <EditOrderFormModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          order={selectedOrder}
         />
       </div>
     </div>
