@@ -85,7 +85,7 @@ export function ReusableTable<T>({
       <div className="flex flex-col gap-4 pb-4">
         <h2 className="ml-8 text-lg font-medium md:ml-0">{title} Table</h2>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex gap-4">
             <Input
               placeholder="Search..."

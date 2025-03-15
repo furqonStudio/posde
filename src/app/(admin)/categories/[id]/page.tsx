@@ -32,6 +32,10 @@ import { toast } from 'sonner'
 import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
 import type { Category, Product } from '@/types'
 import { ReusableFormModal } from '@/components/molecules/ReusableFormModal'
+import {
+  formatIndonesianCurrency,
+  formatIndonesianDateTime,
+} from '@/utils/format'
 
 export default function CategoryDetailPage() {
   const params = useParams()
@@ -144,13 +148,17 @@ export default function CategoryDetailPage() {
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Created At</span>
               <span className="text-sm">
-                {category && new Date(category.created_at).toLocaleDateString()}
+                {category?.created_at
+                  ? formatIndonesianDateTime(category.created_at)
+                  : 'N/A'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Updated At</span>
               <span className="text-sm">
-                {category && new Date(category.updated_at).toLocaleDateString()}
+                {category?.updated_at
+                  ? formatIndonesianDateTime(category.updated_at)
+                  : 'N/A'}
               </span>
             </div>
           </CardContent>
@@ -183,7 +191,7 @@ export default function CategoryDetailPage() {
                       {product.name}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${product.price.toFixed(2)}
+                      {formatIndonesianCurrency(product.price ?? 0)}
                     </TableCell>
                     <TableCell className="text-right">
                       {product.stock}

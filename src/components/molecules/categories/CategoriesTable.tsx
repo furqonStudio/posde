@@ -15,6 +15,7 @@ import { ReusableTable } from '../ReusableTable'
 import { useState } from 'react'
 import { AddCategoryFormModal } from './AddCategoryFormModal'
 import { EditCategoryFormModal } from './EditCategoryFormModal'
+import { formatIndonesianDateTime } from '@/utils/format'
 
 export function CategoriesTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -51,7 +52,6 @@ export function CategoriesTable() {
     },
   })
 
-  // Handler
   const handleAdd = () => {
     setIsAddModalOpen(true)
   }
@@ -111,6 +111,22 @@ export function CategoriesTable() {
         </Button>
       ),
       cell: ({ row }) => <div>{row.original.products.length}</div>,
+    },
+    {
+      accessorKey: 'created_at',
+      minSize: 170,
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Created At
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div>{formatIndonesianDateTime(row.getValue('created_at'))}</div>
+      ),
     },
     {
       id: 'actions',
