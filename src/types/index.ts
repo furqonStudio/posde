@@ -45,7 +45,7 @@ export type OrderItems = {
 export type Order = {
   id: number
   totalPrice: number
-  status: string | number
+  status: string
   items: OrderItems[]
   createdAt: string
 }

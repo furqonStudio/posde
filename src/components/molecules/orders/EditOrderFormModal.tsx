@@ -16,24 +16,25 @@ export const EditOrderFormModal: React.FC<EditOrderFormModalProps> = ({
   onClose,
   order,
 }) => {
-  const [formData, setFormData] = useState<Partial<Order>>({
-    status: '',
-  })
+  const [status, setStatus] = useState<string | number>('')
 
   useEffect(() => {
     if (order) {
-      setFormData(order)
+      setStatus(String(order.status)) // Pastikan status selalu string
     }
   }, [order])
 
   const queryClient = useQueryClient()
 
   const editOrderMutation = useMutation({
-    mutationFn: async (updateOrder: Order) => {
-      await axios.put(
-        `http://localhost:8000/api/orders/${updateOrder.id}`, // ✅ Endpoint diperbaiki
-        updateOrder,
-      )
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: number
+      status: string | number
+    }) => {
+      return axios.patch(`http://localhost:8000/api/orders/${id}`, { status })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', String(order?.id)] })
@@ -41,30 +42,33 @@ export const EditOrderFormModal: React.FC<EditOrderFormModalProps> = ({
       onClose()
       toast.success('Order updated successfully.')
     },
+    onError: () => {
+      toast.error('Failed to update order.')
+    },
   })
 
   const handleSaveEdit = () => {
     if (order) {
-      editOrderMutation.mutate({ ...order, ...formData })
+      editOrderMutation.mutate({ id: order.id, status })
     }
   }
 
   const orderStatuses = [
     { id: 'pending', name: 'Pending' },
-    { id: 'success', name: 'Success' },
+    { id: 'completed', name: 'Completed' },
     { id: 'cancelled', name: 'Cancelled' },
   ]
+
   const formFields = {
     id: 'status',
     label: 'Status',
-    value: formData.status ?? '',
-    defaultValue: formData.status ? String(formData.status) : '',
+    value: status,
+    defaultValue: status,
     options: orderStatuses.map((status) => ({
       value: status.id,
       label: status.name,
     })),
-    onChange: (value: string | number) =>
-      setFormData({ ...formData, status: String(value) }),
+    onChange: (value: string | number) => setStatus(String(value)),
   }
 
   return (

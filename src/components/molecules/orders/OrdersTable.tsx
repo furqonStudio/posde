@@ -1,14 +1,14 @@
 'use client'
 
-import { ReusableTable } from '../ReusableTable'
 import { useState } from 'react'
-import { ConfirmationAlert } from '../ConfirmationAlert'
+import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { ReusableTable } from '../ReusableTable'
 import { toast } from 'sonner'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import type { Order } from '@/types'
-import { orders as initialOrders } from '@/data'
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Pencil } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -16,12 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select'
-import { useRouter } from 'next/navigation'
 import { EditOrderFormModal } from './EditOrderFormModal'
+import axios from 'axios'
+import {
+  formatIndonesianCurrency,
+  formatIndonesianDateTime,
+} from '@/utils/format'
 
 export function OrdersTable() {
-  const [orders, setOrders] = useState<Order[]>(initialOrders)
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -29,12 +31,33 @@ export function OrdersTable() {
 
   const router = useRouter()
 
+  const {
+    data: orders = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      const { data } = await axios.get('http://localhost:8000/api/orders')
+      return data?.data ?? []
+    },
+  })
+  console.log('🚀 ~ OrdersTable ~ orders:', orders)
+
+  // 🔥 Handle error fetching
+  if (isError) {
+    toast.error(error.message)
+  }
+
+  // 🔥 Handle Edit Order
   const handleEdit = (order: Order, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedOrder(order)
     setIsEditModalOpen(true)
   }
 
+  // 🔥 Kolom tabel
   const columns: ColumnDef<Order>[] = [
     {
       accessorKey: 'id',
@@ -43,7 +66,7 @@ export function OrdersTable() {
       cell: ({ row }) => <div>{row.getValue('id')}</div>,
     },
     {
-      accessorKey: 'totalPrice',
+      accessorKey: 'total_price',
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -53,7 +76,9 @@ export function OrdersTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.getValue('totalPrice')}</div>,
+      cell: ({ row }) => (
+        <div>{formatIndonesianCurrency(row.getValue('total_price'))}</div>
+      ),
     },
     {
       accessorKey: 'status',
@@ -65,13 +90,13 @@ export function OrdersTable() {
       accessorKey: 'items',
       header: 'Items',
       size: 50,
-      cell: ({ row }) => <div>{row.getValue('items')}</div>,
+      cell: ({ row }) => <div>{row.original.items.length}</div>,
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: 'created_at',
       header: 'Created At',
       cell: ({ row }) => (
-        <div>{new Date(row.getValue('createdAt')).toLocaleDateString()}</div>
+        <div>{formatIndonesianDateTime(row.getValue('created_at'))}</div>
       ),
     },
     {
@@ -96,53 +121,62 @@ export function OrdersTable() {
     },
   ]
 
+  // 🔥 Handle Pencarian
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
-    filterOrders(query, statusFilter)
+    setSearchQuery(e.target.value.toLowerCase())
   }
 
+  // 🔥 Handle Filter Status
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value)
-    filterOrders(searchQuery, value)
   }
 
-  const filterOrders = (query: string, status: string) => {
-    const filtered = orders.filter(
-      (order) =>
-        ['id', 'status', 'createdAt'].some((key) =>
-          order[key as keyof Order].toString().toLowerCase().includes(query),
-        ) &&
-        (status !== 'all'
-          ? String(order.status).toLowerCase() === status.toLowerCase()
-          : true),
-    )
-    setFilteredOrders(filtered)
-  }
+  // 🔥 Filter Data Orders
+  const filteredOrders = orders.filter(
+    (order: any) =>
+      ['id', 'status', 'createdAt'].some((key) =>
+        order[key as keyof Order]
+          .toString()
+          .toLowerCase()
+          .includes(searchQuery),
+      ) &&
+      (statusFilter !== 'all'
+        ? String(order.status).toLowerCase() === statusFilter.toLowerCase()
+        : true),
+  )
 
   return (
     <div className="w-full">
-      <ReusableTable
-        title="Orders"
-        columns={columns}
-        data={filteredOrders}
-        onAdd={() => router.push('/menu')}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
-        filterComponent={
-          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Success">Success</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        }
-      />
+      {isLoading ? (
+        <div className="flex h-40 items-center justify-center">
+          <p className="text-muted-foreground">Loading orders...</p>
+        </div>
+      ) : (
+        <ReusableTable
+          title="Orders"
+          columns={columns}
+          data={filteredOrders}
+          onAdd={() => router.push('/menu')}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearch}
+          filterComponent={
+            <Select
+              value={statusFilter}
+              onValueChange={handleStatusFilterChange}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        />
+      )}
 
       <EditOrderFormModal
         isOpen={isEditModalOpen}

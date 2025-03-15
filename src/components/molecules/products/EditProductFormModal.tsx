@@ -24,7 +24,6 @@ export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
     image: '',
     stock: 0,
   })
-  console.log('🚀 ~ formData:', formData)
 
   useEffect(() => {
     const fetchCategories = async () => {

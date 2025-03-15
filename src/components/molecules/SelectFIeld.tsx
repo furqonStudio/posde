@@ -36,7 +36,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       <div className="col-span-3">
         <Select
           defaultValue={defaultValue?.toString()}
-          onValueChange={(val) => onChange(Number(val))}
+          onValueChange={(val) => {
+            const parsedValue = isNaN(Number(val)) ? val : Number(val)
+            onChange(parsedValue)
+          }}
         >
           <SelectTrigger className="mt-1 w-full">
             <SelectValue placeholder="Select..." />
