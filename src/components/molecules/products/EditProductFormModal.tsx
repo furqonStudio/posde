@@ -60,6 +60,9 @@ export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
       )
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['product', String(product?.id)],
+      })
       queryClient.invalidateQueries({ queryKey: ['products'] })
       onClose()
       toast.success('Produk berhasil diperbarui.')

@@ -14,38 +14,38 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { formatIndonesianDateTime } from '@/utils/format'
-
-const productData = {
-  'product-1': {
-    id: '1',
-    name: 'Premium Wireless Headphones',
-    description:
-      'High-quality wireless headphones with noise cancellation technology, providing crystal clear sound and comfort for extended use. Features include Bluetooth 5.0, 30-hour battery life, and premium memory foam ear cushions.',
-    price: 199.99,
-    stock: 45,
-    rating: 4.5,
-    reviews: 128,
-    images: [
-      '/placeholder.svg?height=500&width=500',
-      '/placeholder.svg?height=500&width=500',
-      '/placeholder.svg?height=500&width=500',
-    ],
-    category: 'Electronics',
-    createdAt: '2023-05-15T10:30:00Z',
-    updatedAt: '2023-11-20T14:45:00Z',
-  },
-}
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const productId = params.id as string
 
-  // Get product data based on ID
-  const product = productData[`product-${productId}`]
+  // Fetch product data using react-query
+  const {
+    data: product,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['product', productId],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `http://localhost:8000/api/products/${productId}`,
+      )
+      return data?.data
+    },
+  })
 
-  // Handle if product not found
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="flex h-[70vh] flex-col items-center justify-center">
+        <h1 className="mb-4 text-2xl font-bold">Loading Product...</h1>
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className="flex h-[70vh] flex-col items-center justify-center">
         <h1 className="mb-4 text-2xl font-bold">Product Not Found</h1>
@@ -82,21 +82,23 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Product Images */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Product Image</CardTitle>
-          </CardHeader>
+        <Card className="h-fit">
           <CardContent>
-            <div className="overflow-hidden rounded-lg border bg-white">
-              <Image
-                src={product.images[0] || '/placeholder.svg'}
-                alt={product.name}
-                width={500}
-                height={500}
-                className="aspect-square h-auto w-full object-contain"
-              />
-            </div>
+            {product.images?.length ? (
+              <div className="overflow-hidden rounded-lg border bg-white">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  width={500}
+                  height={500}
+                  className="aspect-square h-auto w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex h-[300px] w-full items-center justify-center rounded-lg bg-gray-200 text-gray-500">
+                No Image Available
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -110,7 +112,7 @@ export default function ProductDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-primary text-lg font-bold">
-                  ${product.price.toFixed(2)}
+                  Rp {product.price?.toLocaleString('id-ID')}
                 </span>
                 <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                   In Stock: {product.stock}
@@ -120,7 +122,7 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2">
                 <Tag className="text-muted-foreground h-4 w-4" />
                 <span className="text-sm font-medium">Category:</span>
-                <Badge variant="outline">{product.category}</Badge>
+                <Badge variant="outline">{product.category.name}</Badge>
               </div>
 
               <Separator />
@@ -143,7 +145,7 @@ export default function ProductDetailPage() {
                 <Calendar className="text-muted-foreground h-4 w-4" />
                 <span className="text-sm font-medium">Created At:</span>
                 <span className="text-muted-foreground text-sm">
-                  {formatIndonesianDateTime(product.createdAt)}
+                  {formatIndonesianDateTime(product.created_at)}
                 </span>
               </div>
 
@@ -151,7 +153,7 @@ export default function ProductDetailPage() {
                 <Calendar className="text-muted-foreground h-4 w-4" />
                 <span className="text-sm font-medium">Updated At:</span>
                 <span className="text-muted-foreground text-sm">
-                  {formatIndonesianDateTime(product.updatedAt)}
+                  {formatIndonesianDateTime(product.updated_at)}
                 </span>
               </div>
             </CardContent>
