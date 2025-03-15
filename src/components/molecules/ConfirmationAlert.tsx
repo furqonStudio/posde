@@ -16,13 +16,12 @@ type ConfirmationProps<T> = {
   actionText?: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  selectedName?: T | null
   onClick: () => void
 }
 
 export const ConfirmationAlert = ({
   title = 'Are you absolutely sure?',
-  description = 'This action cannot be undone. This will permanently delete the category',
+  description = 'This action cannot be undone. This will permanently delete data',
   cancelText = 'Cancel',
   actionText = 'Delete',
   open,

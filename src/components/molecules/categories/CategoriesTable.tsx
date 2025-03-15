@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { type ColumnDef } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -11,76 +10,65 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 import type { Category } from '@/types'
-import { ConfirmationAlert } from './ConfirmationAlert'
-import { ReusableTable } from './ReusableTable'
-
-const dummyCategories: Category[] = [
-  {
-    id: 1,
-    name: 'Electronics',
-    products: [
-      {
-        id: 8,
-        name: 'Id non.',
-        price: 240.36,
-        stock: 96,
-        description: null,
-        created_at: '2025-03-04T05:55:48.000000Z',
-        updated_at: '2025-03-04T05:55:48.000000Z',
-      },
-    ],
-    created_at: 'mim',
-    updated_at: 'nun',
-  },
-]
-
-const fetchCategories = async (): Promise<Category[]> => {
-  const { data } = await axios.get('http://localhost:8000/api/categories')
-  return data.data
-}
+import { ConfirmationAlert } from '../ConfirmationAlert'
+import { ReusableTable } from '../ReusableTable'
+import { useState } from 'react'
+import { AddCategoryFormModal } from './AddCategoryFormModal'
+import { EditCategoryFormModal } from './EditCategoryFormModal'
+import { formatIndonesianDateTime } from '@/utils/format'
 
 export function CategoriesTable() {
-  const queryClient = useQueryClient()
-  const router = useRouter()
-
-  const {
-    data: categories,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-  })
-
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   )
   const [searchQuery, setSearchQuery] = useState('')
 
+  const queryClient = useQueryClient()
+  const router = useRouter()
+
+  const {
+    data: categories = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data } = await axios.get('http://localhost:8000/api/categories')
+      return data?.data ?? []
+    },
+  })
+
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: number) => {
       await axios.delete(`http://localhost:8000/api/categories/${categoryId}`)
     },
     onSuccess: () => {
-      toast.error('Category deleted', {
-        description: `${selectedCategory?.name} has been deleted successfully.`,
-      })
-      queryClient.invalidateQueries({ queryKey: ['categories'] }) // Refresh categories list
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
       setIsDeleteModalOpen(false)
-    },
-    onError: (error) => {
-      toast.error('Failed to delete category', {
-        description:
-          error instanceof Error ? error.message : 'Something went wrong',
-      })
+      toast.success('Category deleted successfully.')
     },
   })
 
-  const handleDelete = (category: Category) => {
+  const handleAdd = () => {
+    setIsAddModalOpen(true)
+  }
+
+  const handleEdit = (category: Category, e: React.MouseEvent) => {
+    e.stopPropagation()
     setSelectedCategory(category)
-    setIsDeleteModalOpen(true)
+    setIsEditModalOpen(true)
+  }
+
+  const handleDelete = (categoryId: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const category = categories.find((cat: Category) => cat.id === categoryId)
+    if (category) {
+      setSelectedCategory(category)
+      setIsDeleteModalOpen(true)
+    }
   }
 
   const confirmDelete = () => {
@@ -93,10 +81,9 @@ export function CategoriesTable() {
     setSearchQuery(e.target.value.toLowerCase())
   }
 
-  const filteredCategories =
-    categories?.filter((category) =>
-      category.name.toLowerCase().includes(searchQuery),
-    ) || []
+  const filteredCategories = categories.filter((category: Category) =>
+    category.name.toLowerCase().includes(searchQuery),
+  )
 
   const columns: ColumnDef<Category>[] = [
     {
@@ -123,9 +110,7 @@ export function CategoriesTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="text-center">{row.original.products.length}</div>
-      ),
+      cell: ({ row }) => <div>{row.original.products.length}</div>,
     },
     {
       accessorKey: 'created_at',
@@ -140,27 +125,29 @@ export function CategoriesTable() {
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue('created_at')}</div>
+        <div>{formatIndonesianDateTime(row.getValue('created_at'))}</div>
       ),
     },
     {
       id: 'actions',
+      enableHiding: false,
       header: 'Actions',
       size: 80,
       cell: ({ row }) => {
         const category = row.original
         return (
           <div className="flex justify-center gap-2">
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => handleEdit(category, e)}
+            >
               <Pencil className="h-4 w-4 text-blue-500" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleDelete(category)
-              }}
+              onClick={(e) => handleDelete(category.id, e)}
             >
               <Trash2 className="h-4 w-4 text-red-500" />
             </Button>
@@ -172,25 +159,30 @@ export function CategoriesTable() {
 
   return (
     <div className="w-full">
-      {isLoading && <p>Loading categories...</p>}
-      {isError && <p className="text-red-500">Error: {error?.message}</p>}
+      <ReusableTable
+        title="Categories"
+        columns={columns}
+        data={filteredCategories}
+        onAdd={handleAdd}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        onRowClick={(row) => router.push(`/categories/${row.id}`)}
+      />
 
-      {!isLoading && !isError && (
-        <ReusableTable
-          title="Categories"
-          columns={columns}
-          data={filteredCategories}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearch}
-          onAdd={() => router.push('/categories/add')}
-          onRowClick={(row) => router.push(`/categories/${row.id}`)}
-        />
-      )}
+      <AddCategoryFormModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
+
+      <EditCategoryFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        category={selectedCategory}
+      />
 
       <ConfirmationAlert
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
-        selectedName={selectedCategory}
         onClick={confirmDelete}
       />
     </div>

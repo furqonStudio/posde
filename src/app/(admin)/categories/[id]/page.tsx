@@ -1,10 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
-import { AlignJustify, ArrowLeft, Package, Pencil, Trash2 } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import {
+  AlignJustify,
+  ArrowLeft,
+  List,
+  Package,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -21,48 +26,87 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import axios from 'axios'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
 import type { Category, Product } from '@/types'
+import { ReusableFormModal } from '@/components/molecules/ReusableFormModal'
+import {
+  formatIndonesianCurrency,
+  formatIndonesianDateTime,
+} from '@/utils/format'
 
 export default function CategoryDetailPage() {
+  const params = useParams()
   const router = useRouter()
-  const { id } = useParams()
-  const queryClient = useQueryClient()
+  const categoryId = params.id as string
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [formData, setFormData] = useState<Partial<Category>>({
+    id: 0,
+    name: '',
+  })
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const {
     data: category,
     isLoading,
-    isError,
+    error,
   } = useQuery<Category>({
-    queryKey: ['category', id],
+    queryKey: ['category', categoryId],
     queryFn: async () => {
       const { data } = await axios.get(
-        `http://localhost:8000/api/categories/${id}`,
+        `http://localhost:8000/api/categories/${categoryId}`,
       )
-      console.log('🚀 ~ queryFn: ~ data.data:', data.data)
+      return data?.data
+    },
+  })
 
-      return data.data
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (updatedCategory: Partial<Category>) => {
+      await axios.put(
+        `http://localhost:8000/api/categories/${categoryId}`,
+        updatedCategory,
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['category', categoryId] })
+      setIsEditModalOpen(false)
+      toast.success('Category updated successfully.')
     },
   })
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async () => {
-      await axios.delete(`http://localhost:8000/api/categories/${id}`)
+      await axios.delete(`http://localhost:8000/api/categories/${categoryId}`)
     },
     onSuccess: () => {
-      toast.success('Category deleted successfully.')
       queryClient.invalidateQueries({ queryKey: ['categories'] })
+      setIsDeleteDialogOpen(false)
+      toast.success('Category deleted successfully.')
       router.push('/categories')
-    },
-    onError: () => {
-      toast.error('Failed to delete category.')
     },
   })
 
-  if (isLoading) return <p>Loading...</p>
-  if (isError || !category) return <p>Failed to load category.</p>
+  const handleSaveEdit = () => {
+    updateCategoryMutation.mutate(formData)
+  }
+
+  const handleDeleteCategory = () => {
+    deleteCategoryMutation.mutate()
+  }
+
+  const formFields = [
+    {
+      id: 'name',
+      label: 'Name',
+      type: 'text',
+      value: formData.name,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, name: e.target.value }),
+    },
+  ]
 
   return (
     <div className="w-full overflow-auto p-4">
@@ -72,18 +116,15 @@ export default function CategoryDetailPage() {
             <Button variant="ghost" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-lg font-medium">{category.name}</h2>
+            <h2 className="text-lg font-medium">{category?.name}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/categories/edit/${category.id}`)}
-            >
+            <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit
             </Button>
             <Button
-              variant="outline"
+              variant="destructive"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -102,18 +143,22 @@ export default function CategoryDetailPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Name</span>
-              <span className="text-sm">{category.name}</span>
+              <span className="text-sm">{category?.name}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Created At</span>
               <span className="text-sm">
-                {new Date(category.created_at).toLocaleDateString()}
+                {category?.created_at
+                  ? formatIndonesianDateTime(category.created_at)
+                  : 'N/A'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground text-sm">Updated At</span>
               <span className="text-sm">
-                {new Date(category.updated_at).toLocaleDateString()}
+                {category?.updated_at
+                  ? formatIndonesianDateTime(category.updated_at)
+                  : 'N/A'}
               </span>
             </div>
           </CardContent>
@@ -125,8 +170,8 @@ export default function CategoryDetailPage() {
               <Package className="mr-2 h-5 w-5" /> Products
             </CardTitle>
             <CardDescription>
-              {category.products.length}{' '}
-              {category.products.length === 1 ? 'product' : 'products'} in this
+              {category?.products.length}{' '}
+              {category?.products.length === 1 ? 'product' : 'products'} in this
               category
             </CardDescription>
           </CardHeader>
@@ -140,17 +185,13 @@ export default function CategoryDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {category.products.map((product: Product) => (
-                  <TableRow
-                    key={product.id}
-                    className="cursor-pointer hover:bg-gray-100"
-                    onClick={() => router.push(`/products/${product.id}`)}
-                  >
+                {category?.products.map((product: Product) => (
+                  <TableRow key={product.id}>
                     <TableCell className="font-medium">
                       {product.name}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${product.price}
+                      {formatIndonesianCurrency(product.price ?? 0)}
                     </TableCell>
                     <TableCell className="text-right">
                       {product.stock}
@@ -162,15 +203,22 @@ export default function CategoryDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Konfirmasi Hapus Kategori */}
         <ConfirmationAlert
           title="Delete Category"
           description="Are you sure you want to delete this category? This action cannot be undone."
-          onClick={() => deleteCategoryMutation.mutate()}
+          onClick={handleDeleteCategory}
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
           actionText="Yes, Delete Category"
           cancelText="No, Keep Category"
+        />
+        <ReusableFormModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveEdit}
+          title="Edit Category"
+          description="Make changes to the category details here."
+          fields={formFields}
         />
       </div>
     </div>

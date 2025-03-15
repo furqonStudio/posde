@@ -36,7 +36,7 @@ import { OrderItem } from '@/types'
 
 // Sample order data - in a real app, this would come from an API or database
 
-export default function OrderDetailsPage() {
+export default function OrderDetailPage() {
   const params = useParams()
   const router = useRouter()
   const orderId = params.id as string

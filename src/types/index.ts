@@ -18,7 +18,7 @@ export type Product = {
   id: number
   name: string
   price: number | null
-  category?: SimpleCategory | null
+  category: SimpleCategory | null
   image?: string
   stock: number
   description: string | null
@@ -29,7 +29,7 @@ export type Product = {
 export type Category = {
   id: number
   name: string
-  products: Omit<Product, 'category'>[]
+  products: Product[]
   created_at: string
   updated_at: string
 }

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Image from 'next/image'
+import { SelectField } from './SelectFIeld'
 
 interface FormField {
   id: string
@@ -36,6 +37,13 @@ interface ReusableFormModalProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     onRemove: () => void
   }
+  selectField?: {
+    id: string
+    label: string
+    value: number
+    options: { value: number; label: string }[]
+    onChange: (value: number) => void
+  }
 }
 
 export function ReusableFormModal({
@@ -46,6 +54,7 @@ export function ReusableFormModal({
   description,
   fields,
   imageField,
+  selectField,
 }: ReusableFormModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -103,6 +112,14 @@ export function ReusableFormModal({
               />
             </div>
           ))}
+          {selectField && (
+            <SelectField
+              id={selectField.id}
+              label={selectField.label}
+              options={selectField.options}
+              onChange={selectField.onChange}
+            />
+          )}
         </div>
         <DialogFooter>
           <Button type="submit" onClick={onSave}>

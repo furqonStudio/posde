@@ -1,4 +1,4 @@
-import { CategoriesTable } from '@/components/molecules/CategoriesTable'
+import { CategoriesTable } from '@/components/molecules/categories/CategoriesTable'
 import React from 'react'
 
 const CategoriesPage = () => {

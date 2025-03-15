@@ -78,12 +78,14 @@ export function ReusableTable<T>({
     },
   })
 
+  console.log('TABLE RENDERED')
+
   return (
     <div className="w-full">
       <div className="flex flex-col gap-4 pb-4">
         <h2 className="ml-8 text-lg font-medium md:ml-0">{title} Table</h2>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex gap-4">
             {onSearchChange && (
               <Input
@@ -146,8 +148,8 @@ export function ReusableTable<T>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-gray-100"
-                  onClick={() => onRowClick?.(row.original)}
+                  onClick={() => onRowClick && onRowClick(row.original)}
+                  className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="border-x">
