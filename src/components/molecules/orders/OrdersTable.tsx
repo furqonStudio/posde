@@ -114,7 +114,7 @@ export function OrdersTable() {
           order[key as keyof Order].toString().toLowerCase().includes(query),
         ) &&
         (status !== 'all'
-          ? order.status.toLowerCase() === status.toLowerCase()
+          ? String(order.status).toLowerCase() === status.toLowerCase()
           : true),
     )
     setFilteredOrders(filtered)

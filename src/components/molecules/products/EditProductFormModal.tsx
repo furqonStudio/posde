@@ -132,14 +132,14 @@ export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
   const selectField = {
     id: 'category_id',
     label: 'Kategori',
-    value: formData.category_id || 0,
-    defaultValue: String(formData.category_id) || '',
+    value: formData.category_id ?? 0,
+    defaultValue: formData.category_id ? String(formData.category_id) : '',
     options: categories.map((category) => ({
       value: category.id,
       label: category.name,
     })),
-    onChange: (value: number) => {
-      setFormData({ ...formData, category_id: value })
+    onChange: (value: string | number) => {
+      setFormData({ ...formData, category_id: Number(value) })
     },
   }
 

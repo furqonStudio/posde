@@ -35,11 +35,18 @@ export type Category = {
   updated_at: string
 }
 
+export type OrderItems = {
+  product: Product[]
+  quantity: number
+  price: number
+  subtotal: number
+}
+
 export type Order = {
   id: number
   totalPrice: number
-  status: string
-  items: number
+  status: string | number
+  items: OrderItems[]
   createdAt: string
 }
 

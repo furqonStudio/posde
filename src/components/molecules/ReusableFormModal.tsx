@@ -29,7 +29,7 @@ interface ReusableFormModalProps {
   onSave: () => void
   title: string
   description: string
-  fields: FormField[]
+  fields?: FormField[]
   imageField?: {
     id: string
     label: string
@@ -40,10 +40,10 @@ interface ReusableFormModalProps {
   selectField?: {
     id: string
     label: string
-    value: number
-    options: { value: number; label: string }[]
-    onChange: (value: number) => void
-    defaultValue?: string
+    value: number | string
+    options: { value: number | string; label: string }[]
+    onChange: (value: number | string) => void
+    defaultValue?: number | string
   }
 }
 
@@ -97,18 +97,22 @@ export function ReusableFormModal({
               </div>
             </div>
           )}
-          {fields.map((field) => (
-            <div key={field.id} className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor={field.id}>{field.label}</Label>
-              <Input
-                id={field.id}
-                type={field.type}
-                value={field.value}
-                onChange={field.onChange}
-                className="col-span-3"
-              />
-            </div>
-          ))}
+          {fields &&
+            fields.map((field) => (
+              <div
+                key={field.id}
+                className="grid grid-cols-4 items-center gap-4"
+              >
+                <Label htmlFor={field.id}>{field.label}</Label>
+                <Input
+                  id={field.id}
+                  type={field.type}
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="col-span-3"
+                />
+              </div>
+            ))}
           {selectField && (
             <SelectField
               id={selectField.id}

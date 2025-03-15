@@ -11,7 +11,7 @@ import {
 import { Label } from '../ui/label'
 
 type SelectOption = {
-  value: number
+  value: number | string
   label: string
 }
 
@@ -19,8 +19,8 @@ type SelectFieldProps = {
   id: string
   label: string
   options: SelectOption[]
-  onChange: (value: number) => void
-  defaultValue?: string
+  onChange: (value: number | string) => void
+  defaultValue?: string | number
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({
@@ -35,15 +35,15 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       <Label htmlFor={id}>{label}</Label>
       <div className="col-span-3">
         <Select
-          defaultValue={defaultValue}
+          defaultValue={defaultValue?.toString()}
           onValueChange={(val) => onChange(Number(val))}
         >
           <SelectTrigger className="mt-1 w-full">
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Categories</SelectLabel>
+              <SelectLabel>{label}</SelectLabel>
               {options.map((option) => (
                 <SelectItem key={option.value} value={option.value.toString()}>
                   {option.label}

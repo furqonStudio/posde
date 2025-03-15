@@ -3,7 +3,7 @@ import { ReusableFormModal } from '../ReusableFormModal'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
-import type { Category, Order } from '@/types'
+import type { Order } from '@/types'
 
 interface EditOrderFormModalProps {
   isOpen: boolean
@@ -28,48 +28,53 @@ export const EditOrderFormModal: React.FC<EditOrderFormModalProps> = ({
 
   const queryClient = useQueryClient()
 
-  const EditOrderMutation = useMutation({
+  const editOrderMutation = useMutation({
     mutationFn: async (updateOrder: Order) => {
       await axios.put(
-        `http://localhost:8000/api/categories/${updateOrder.id}`,
+        `http://localhost:8000/api/orders/${updateOrder.id}`, // ✅ Endpoint diperbaiki
         updateOrder,
       )
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['order', String(order?.id)],
-      })
+      queryClient.invalidateQueries({ queryKey: ['order', String(order?.id)] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       onClose()
-      toast.success('Category updated successfully.')
+      toast.success('Order updated successfully.')
     },
   })
 
   const handleSaveEdit = () => {
     if (order) {
-      EditOrderMutation.mutate({ ...order, ...formData })
+      editOrderMutation.mutate({ ...order, ...formData })
     }
   }
 
-  const formFields = [
-    {
-      id: 'status',
-      label: 'Status',
-      type: 'text',
-      value: formData.status,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFormData({ ...formData, status: e.target.value }),
-    },
+  const orderStatuses = [
+    { id: 'pending', name: 'Pending' },
+    { id: 'success', name: 'Success' },
+    { id: 'cancelled', name: 'Cancelled' },
   ]
+  const formFields = {
+    id: 'status',
+    label: 'Status',
+    value: formData.status ?? '',
+    defaultValue: formData.status ? String(formData.status) : '',
+    options: orderStatuses.map((status) => ({
+      value: status.id,
+      label: status.name,
+    })),
+    onChange: (value: string | number) =>
+      setFormData({ ...formData, status: String(value) }),
+  }
 
   return (
     <ReusableFormModal
       isOpen={isOpen}
       onClose={onClose}
       onSave={handleSaveEdit}
-      title="Edit Category"
-      description="Make changes to the category details here."
-      fields={formFields}
+      title="Edit Order"
+      description="Make changes to the order details here."
+      selectField={formFields}
     />
   )
 }
