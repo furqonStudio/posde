@@ -2,14 +2,7 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import {
-  AlignJustify,
-  ArrowLeft,
-  List,
-  Package,
-  Pencil,
-  Trash2,
-} from 'lucide-react'
+import { AlignJustify, ArrowLeft, Package, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -31,22 +24,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
 import type { Category, Product } from '@/types'
-import { ReusableFormModal } from '@/components/molecules/ReusableFormModal'
 import {
   formatIndonesianCurrency,
   formatIndonesianDateTime,
 } from '@/utils/format'
+import { EditCategoryFormModal } from '@/components/molecules/categories/EditCategoryFormModal'
 
 export default function CategoryDetailPage() {
   const params = useParams()
   const router = useRouter()
   const categoryId = params.id as string
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [formData, setFormData] = useState<Partial<Category>>({
-    id: 0,
-    name: '',
-  })
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  )
   const queryClient = useQueryClient()
 
   const {
@@ -62,20 +54,7 @@ export default function CategoryDetailPage() {
       return data?.data
     },
   })
-
-  const updateCategoryMutation = useMutation({
-    mutationFn: async (updatedCategory: Partial<Category>) => {
-      await axios.put(
-        `http://localhost:8000/api/categories/${categoryId}`,
-        updatedCategory,
-      )
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['category', categoryId] })
-      setIsEditModalOpen(false)
-      toast.success('Category updated successfully.')
-    },
-  })
+  console.log('🚀 ~ CategoryDetailPage ~ categoryId:', categoryId)
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async () => {
@@ -89,24 +68,20 @@ export default function CategoryDetailPage() {
     },
   })
 
-  const handleSaveEdit = () => {
-    updateCategoryMutation.mutate(formData)
+  const handleEdit = () => {
+    if (category) {
+      setSelectedCategory(category)
+    }
+    setIsEditModalOpen(true)
+  }
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true)
   }
 
   const handleDeleteCategory = () => {
     deleteCategoryMutation.mutate()
   }
-
-  const formFields = [
-    {
-      id: 'name',
-      label: 'Name',
-      type: 'text',
-      value: formData.name,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFormData({ ...formData, name: e.target.value }),
-    },
-  ]
 
   return (
     <div className="w-full overflow-auto p-4">
@@ -119,14 +94,11 @@ export default function CategoryDetailPage() {
             <h2 className="text-lg font-medium">{category?.name}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>
+            <Button variant="outline" onClick={handleEdit}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setIsDeleteDialogOpen(true)}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </Button>
@@ -212,13 +184,10 @@ export default function CategoryDetailPage() {
           actionText="Yes, Delete Category"
           cancelText="No, Keep Category"
         />
-        <ReusableFormModal
+        <EditCategoryFormModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          onSave={handleSaveEdit}
-          title="Edit Category"
-          description="Make changes to the category details here."
-          fields={formFields}
+          category={selectedCategory}
         />
       </div>
     </div>

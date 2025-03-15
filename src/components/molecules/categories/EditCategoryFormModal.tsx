@@ -37,6 +37,9 @@ export const EditCategoryFormModal: React.FC<EditCategoryFormModalProps> = ({
       )
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['category', String(category?.id)],
+      })
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       onClose()
       toast.success('Category updated successfully.')

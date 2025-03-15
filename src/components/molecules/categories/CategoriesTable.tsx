@@ -110,7 +110,9 @@ export function CategoriesTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div>{row.original.products.length}</div>,
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.products.length}</div>
+      ),
     },
     {
       accessorKey: 'created_at',
@@ -125,7 +127,9 @@ export function CategoriesTable() {
         </Button>
       ),
       cell: ({ row }) => (
-        <div>{formatIndonesianDateTime(row.getValue('created_at'))}</div>
+        <div className="text-center">
+          {formatIndonesianDateTime(row.getValue('created_at'))}
+        </div>
       ),
     },
     {
