@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 import type { Category } from '@/types'
-import { ConfirmationAlert } from './ConfirmationAlert'
-import { ReusableTable } from './ReusableTable'
-import { ReusableFormModal } from './ReusableFormModal'
+import { ConfirmationAlert } from '../ConfirmationAlert'
+import { ReusableTable } from '../ReusableTable'
+import { useState } from 'react'
+import { AddCategoryFormModal } from './AddCategoryFormModal'
+import { EditCategoryFormModal } from './EditCategoryFormModal'
 
 export function CategoriesTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -21,16 +23,11 @@ export function CategoriesTable() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   )
-  const [formData, setFormData] = useState<Partial<Category>>({
-    id: 0,
-    name: '',
-  })
   const [searchQuery, setSearchQuery] = useState('')
 
   const queryClient = useQueryClient()
   const router = useRouter()
 
-  // Fetch Categories
   const {
     data: categories = [],
     isLoading,
@@ -40,32 +37,6 @@ export function CategoriesTable() {
     queryFn: async () => {
       const { data } = await axios.get('http://localhost:8000/api/categories')
       return data?.data ?? []
-    },
-  })
-
-  // Mutation untuk Add/Edit/Delete
-  const addCategoryMutation = useMutation({
-    mutationFn: async (newCategory: Partial<Category>) => {
-      await axios.post('http://localhost:8000/api/categories', newCategory)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      setIsAddModalOpen(false)
-      toast.success('Category added successfully.')
-    },
-  })
-
-  const editCategoryMutation = useMutation({
-    mutationFn: async (updatedCategory: Category) => {
-      await axios.put(
-        `http://localhost:8000/api/categories/${updatedCategory.id}`,
-        updatedCategory,
-      )
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      setIsEditModalOpen(false)
-      toast.success('Category updated successfully.')
     },
   })
 
@@ -82,25 +53,13 @@ export function CategoriesTable() {
 
   // Handler
   const handleAdd = () => {
-    setFormData({ id: 0, name: '' })
     setIsAddModalOpen(true)
   }
 
   const handleEdit = (category: Category, e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedCategory(category)
-    setFormData(category)
     setIsEditModalOpen(true)
-  }
-
-  const handleSaveAdd = () => {
-    addCategoryMutation.mutate(formData)
-  }
-
-  const handleSaveEdit = () => {
-    if (selectedCategory) {
-      editCategoryMutation.mutate({ ...selectedCategory, ...formData })
-    }
   }
 
   const handleDelete = (categoryId: number, e: React.MouseEvent) => {
@@ -182,17 +141,6 @@ export function CategoriesTable() {
     },
   ]
 
-  const formFields = [
-    {
-      id: 'name',
-      label: 'Name',
-      type: 'text',
-      value: formData.name,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFormData({ ...formData, name: e.target.value }),
-    },
-  ]
-
   return (
     <div className="w-full">
       <ReusableTable
@@ -205,22 +153,15 @@ export function CategoriesTable() {
         onRowClick={(row) => router.push(`/categories/${row.id}`)}
       />
 
-      <ReusableFormModal
+      <AddCategoryFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSave={handleSaveAdd}
-        title="Add New Category"
-        description="Enter the details for the new category."
-        fields={formFields}
       />
 
-      <ReusableFormModal
+      <EditCategoryFormModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSaveEdit}
-        title="Edit Category"
-        description="Make changes to the category details here."
-        fields={formFields}
+        category={selectedCategory}
       />
 
       <ConfirmationAlert

@@ -78,6 +78,8 @@ export function ReusableTable<T>({
     },
   })
 
+  console.log('TABLE RENDERED')
+
   return (
     <div className="w-full">
       <div className="flex flex-col gap-4 pb-4">
