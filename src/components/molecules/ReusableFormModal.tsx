@@ -43,6 +43,7 @@ interface ReusableFormModalProps {
     value: number
     options: { value: number; label: string }[]
     onChange: (value: number) => void
+    defaultValue?: string
   }
 }
 
@@ -111,6 +112,7 @@ export function ReusableFormModal({
           {selectField && (
             <SelectField
               id={selectField.id}
+              defaultValue={selectField.defaultValue}
               label={selectField.label}
               options={selectField.options}
               onChange={selectField.onChange}

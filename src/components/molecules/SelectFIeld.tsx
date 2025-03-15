@@ -20,6 +20,7 @@ type SelectFieldProps = {
   label: string
   options: SelectOption[]
   onChange: (value: number) => void
+  defaultValue?: string
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({
@@ -27,12 +28,16 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   label,
   options,
   onChange,
+  defaultValue,
 }) => {
   return (
     <div className="grid grid-cols-4 items-center gap-4">
       <Label htmlFor={id}>{label}</Label>
       <div className="col-span-3">
-        <Select onValueChange={(val) => onChange(Number(val))}>
+        <Select
+          defaultValue={defaultValue}
+          onValueChange={(val) => onChange(Number(val))}
+        >
           <SelectTrigger className="mt-1 w-full">
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
