@@ -3,18 +3,18 @@ import { ReusableFormModal } from '../ReusableFormModal'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
-import type { Category } from '@/types'
+import type { Category, Product } from '@/types'
 
-interface EditCategoryFormModalProps {
+interface EditProductFormModalProps {
   isOpen: boolean
   onClose: () => void
-  category: Category | null
+  product: Product | null
 }
 
-export const EditCategoryFormModal: React.FC<EditCategoryFormModalProps> = ({
+export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
   isOpen,
   onClose,
-  category,
+  product,
 }) => {
   const [formData, setFormData] = useState<Partial<Category>>({
     id: 0,
@@ -22,14 +22,14 @@ export const EditCategoryFormModal: React.FC<EditCategoryFormModalProps> = ({
   })
 
   useEffect(() => {
-    if (category) {
-      setFormData(category)
+    if (product) {
+      setFormData(product)
     }
-  }, [category])
+  }, [product])
 
   const queryClient = useQueryClient()
 
-  const editCategoryMutation = useMutation({
+  const EditProductMutation = useMutation({
     mutationFn: async (updatedCategory: Category) => {
       await axios.put(
         `http://localhost:8000/api/categories/${updatedCategory.id}`,
@@ -45,7 +45,7 @@ export const EditCategoryFormModal: React.FC<EditCategoryFormModalProps> = ({
 
   const handleSaveEdit = () => {
     if (category) {
-      editCategoryMutation.mutate({ ...category, ...formData })
+      EditProductMutation.mutate({ ...category, ...formData })
     }
   }
 

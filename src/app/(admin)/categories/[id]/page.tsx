@@ -98,7 +98,7 @@ export default function CategoryDetailPage() {
               <Pencil className="mr-2 h-4 w-4" />
               Edit
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="outline" onClick={handleDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </Button>

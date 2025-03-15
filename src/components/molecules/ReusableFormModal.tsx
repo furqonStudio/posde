@@ -66,9 +66,7 @@ export function ReusableFormModal({
         <div className="grid gap-4 py-4">
           {imageField && (
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor={imageField.id} className="text-right">
-                {imageField.label}
-              </Label>
+              <Label htmlFor={imageField.id}>{imageField.label}</Label>
               <div className="col-span-3">
                 {imageField.value && (
                   <div className="mb-2">
@@ -100,9 +98,7 @@ export function ReusableFormModal({
           )}
           {fields.map((field) => (
             <div key={field.id} className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor={field.id} className="text-right">
-                {field.label}
-              </Label>
+              <Label htmlFor={field.id}>{field.label}</Label>
               <Input
                 id={field.id}
                 type={field.type}

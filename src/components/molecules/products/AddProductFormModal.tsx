@@ -1,59 +1,157 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ReusableFormModal } from '../ReusableFormModal'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
-import type { Category } from '@/types'
+import type { Category, Product, SimpleCategory } from '@/types'
 
-interface AddCategoryFormModalProps {
+interface AddProductFormModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export const AddCategoryFormModal: React.FC<AddCategoryFormModalProps> = ({
+export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [formData, setFormData] = useState<Partial<Category>>({
+  const [categories, setCategories] = useState<SimpleCategory[]>([])
+  const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
+    price: 0,
+    category: { id: 0, name: 'Uncategorized' },
+    image: '',
+    stock: 0,
   })
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get('http://localhost:8000/api/categories')
+        setCategories(data?.data ?? [])
+      } catch (err) {
+        toast.error('Gagal mengambil data kategori.')
+      }
+    }
+    fetchCategories()
+  }, [])
 
   const queryClient = useQueryClient()
 
-  const addCategoryMutation = useMutation({
-    mutationFn: async (newCategory: Partial<Category>) => {
-      await axios.post('http://localhost:8000/api/categories', newCategory)
+  const addProductMutation = useMutation({
+    mutationFn: async (newProduct: Partial<Product>) => {
+      await axios.post('http://localhost:8000/api/products', newProduct)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
       onClose()
-      toast.success('Category added successfully.')
+      toast.success('Produk berhasil ditambahkan.')
     },
   })
 
   const handleSaveAdd = () => {
-    addCategoryMutation.mutate(formData)
+    if (!formData.name || formData.price! <= 0 || formData.stock! < 0) {
+      toast.error('Harap isi semua bidang dengan benar.')
+      return
+    }
+
+    const productData = {
+      ...formData,
+      category_id: formData.category?.id,
+    }
+    delete productData.category
+
+    addProductMutation.mutate(productData)
   }
 
   const formFields = [
     {
       id: 'name',
-      label: 'Name',
+      label: 'Nama',
       type: 'text',
       value: formData.name,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setFormData({ ...formData, name: e.target.value }),
     },
+    {
+      id: 'description',
+      label: 'Description',
+      type: 'text',
+      value: formData.description,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, description: e.target.value }),
+    },
+    {
+      id: 'price',
+      label: 'Harga',
+      type: 'number',
+      value: formData.price || '',
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, price: Number(e.target.value) || 0 }),
+    },
+    {
+      id: 'stock',
+      label: 'Stok',
+      type: 'number',
+      value: formData.stock || '',
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setFormData({ ...formData, stock: Number(e.target.value) || 0 }),
+    },
   ]
+
+  const imageField = {
+    id: 'image',
+    label: 'Gambar',
+    value: formData.image || '',
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setFormData((prev) => ({
+            ...prev,
+            image: reader.result as string,
+          }))
+        }
+        reader.readAsDataURL(file)
+      }
+    },
+    onRemove: () => {
+      setFormData((prev) => ({
+        ...prev,
+        image: '',
+      }))
+    },
+  }
+
+  const selectField = {
+    id: 'category',
+    label: 'Kategori',
+    value: formData.category?.id || 0,
+    options: categories.map((category) => ({
+      value: category.id,
+      label: category.name,
+    })),
+    onChange: (value: number) => {
+      const selectedCategory = categories.find(
+        (category) => category.id === value,
+      )
+      setFormData({
+        ...formData,
+        category: selectedCategory || { id: 0, name: 'Uncategorized' },
+      })
+    },
+  }
 
   return (
     <ReusableFormModal
       isOpen={isOpen}
       onClose={onClose}
       onSave={handleSaveAdd}
-      title="Add New Category"
-      description="Enter the details for the new category."
+      title="Tambah Produk Baru"
+      description="Isi detail produk yang ingin ditambahkan."
       fields={formFields}
+      imageField={imageField}
+      selectField={selectField}
     />
   )
 }

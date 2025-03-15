@@ -15,6 +15,8 @@ import { ConfirmationAlert } from '../ConfirmationAlert'
 import { ReusableTable } from '../ReusableTable'
 import { ReusableFormModal } from '../ReusableFormModal'
 import { formatIndonesianCurrency } from '@/utils/format'
+import { EditProductFormModal } from './EditProductFormModal'
+import { AddProductFormModal } from './AddProductFormModal'
 
 export function ProductsTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -131,24 +133,6 @@ export function ProductsTable() {
     setSelectedProduct(product)
     setFormData(product)
     setIsEditModalOpen(true)
-  }
-
-  const handleSaveAdd = () => {
-    // addProductMutation.mutate(formData)
-    // addProductMutation.mutate({
-    //   ...formData,
-    //   category: categories.find((cat) => cat.id === formData.category?.id) || null,
-    // })
-    console.log(
-      '🚀 ~ handleSaveAdd ~ formData.category?.id:',
-      formData.category?.id,
-    )
-  }
-
-  const handleSaveEdit = () => {
-    if (selectedProduct) {
-      editProductMutation.mutate({ ...selectedProduct, ...formData })
-    }
   }
 
   const handleDelete = (productId: number, e: React.MouseEvent) => {
@@ -355,25 +339,15 @@ export function ProductsTable() {
         onRowClick={(row) => router.push(`/products/${row.id}`)}
       />
 
-      <ReusableFormModal
+      <AddProductFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSave={handleSaveAdd}
-        title="Add New Product"
-        description="Enter the details for the new product."
-        fields={formFields}
-        imageField={imageField}
-        selectField={selectField}
       />
-      <ReusableFormModal
+
+      <EditProductFormModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSaveEdit}
-        title="Edit Product"
-        description="Make changes to the product details here."
-        fields={formFields}
-        imageField={imageField}
-        selectField={selectField}
+        product={selectedProduct}
       />
 
       <ConfirmationAlert
