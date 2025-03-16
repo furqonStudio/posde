@@ -37,7 +37,10 @@ import { Order, OrderItem } from '@/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { EditOrderFormModal } from '@/components/molecules/orders/EditOrderFormModal'
-import { formatIndonesianDateTime } from '@/utils/format'
+import {
+  formatIndonesianCurrency,
+  formatIndonesianDateTime,
+} from '@/utils/format'
 
 // Sample order data - in a real app, this would come from an API or database
 
@@ -63,7 +66,7 @@ export default function OrderDetailPage() {
       return data?.data
     },
   })
-  console.log('🚀 ~ OrderDetailPage ~ order:', order)
+  console.log('ORDER', order)
 
   const handleEdit = () => {
     if (order) {
@@ -207,21 +210,23 @@ export default function OrderDetailPage() {
                 <span className="text-muted-foreground text-sm">
                   Payment Status
                 </span>
-                <Badge className={getPaymentStatusColor(order.paymentStatus)}>
-                  {order.paymentStatus}
+                <Badge className={getPaymentStatusColor(order.payment.status)}>
+                  {order.payment.status}
                 </Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground text-sm">
                   Payment Method
                 </span>
-                <span className="text-sm">{order.paymentMethod}</span>
+                <span className="text-sm">{order.payment.method}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground text-sm">
                   Total Amount
                 </span>
-                <span className="text-sm font-bold">{order.total}</span>
+                <span className="text-sm font-bold">
+                  {formatIndonesianCurrency(order.payment.amount)}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -251,26 +256,24 @@ export default function OrderDetailPage() {
                     <TableCell className="font-medium">
                       {item.product.name}
                     </TableCell>
-                    <TableCell className="text-right">${item.price}</TableCell>
+                    <TableCell className="text-right">
+                      {formatIndonesianCurrency(item.product.price)}
+                    </TableCell>
                     <TableCell className="text-right">
                       {item.quantity}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${item.price * item.quantity}
+                      {formatIndonesianCurrency(item.subtotal)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
               <TableFooter>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell colSpan={3}>Subtotal</TableCell>
                   <TableCell className="text-right">
                     ${order.subtotal}
                   </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell colSpan={3}>Tax</TableCell>
-                  <TableCell className="text-right">${order.tax}</TableCell>
                 </TableRow>
                 {order.discount > 0 && (
                   <TableRow>
@@ -279,13 +282,13 @@ export default function OrderDetailPage() {
                       -${order.discount}
                     </TableCell>
                   </TableRow>
-                )}
+                )} */}
                 <TableRow>
                   <TableCell colSpan={3} className="font-bold">
                     Total
                   </TableCell>
                   <TableCell className="text-right font-bold">
-                    {order.total_price}
+                    {formatIndonesianCurrency(order.total_price)}
                   </TableCell>
                 </TableRow>
               </TableFooter>
