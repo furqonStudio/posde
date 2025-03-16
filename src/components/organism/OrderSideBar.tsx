@@ -14,6 +14,7 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 import type { CartItem } from '@/types'
+import { formatIndonesianCurrency } from '@/utils/format'
 
 interface OrderSideBarProps {
   cart: CartItem[]
@@ -89,7 +90,7 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
                           {item.name}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          {item.price}
+                          {formatIndonesianCurrency(item.price)}
                         </p>
                       </div>
                     </div>
@@ -133,12 +134,12 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
               <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{subtotal}</span>
+                  <span>{formatIndonesianCurrency(subtotal)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span>{total}</span>
+                  <span>{formatIndonesianCurrency(total)}</span>
                 </div>
               </div>
 

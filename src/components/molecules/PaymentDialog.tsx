@@ -10,6 +10,7 @@ import { Button } from '../ui/button'
 import { Banknote, CreditCard, Receipt } from 'lucide-react'
 import { Input } from '../ui/input'
 import { CartItem } from '@/types'
+import { formatIndonesianCurrency } from '@/utils/format'
 
 type PaymentDialogProps = {
   paymentDialogOpen: boolean
@@ -24,6 +25,9 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
   setCart,
   total,
 }) => {
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | null>(
+    null,
+  )
   const [cashAmount, setCashAmount] = useState('')
 
   const calculateChange = () => {
@@ -40,40 +44,56 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
         <div className="space-y-4">
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>
-            <span>{total}</span>
+            <span>{formatIndonesianCurrency(total)}</span>
           </div>
 
+          {/* Metode Pembayaran */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Payment Method</label>
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="justify-start">
+              <Button
+                variant={paymentMethod === 'Card' ? 'default' : 'outline'}
+                className="justify-start"
+                onClick={() => {
+                  setPaymentMethod('Card')
+                  setCashAmount('') // Reset cash amount jika berubah ke non-cash
+                }}
+              >
                 <CreditCard className="mr-2 h-4 w-4" />
                 Card
               </Button>
-              <Button variant="outline" className="justify-start">
+              <Button
+                variant={paymentMethod === 'Cash' ? 'default' : 'outline'}
+                className="justify-start"
+                onClick={() => setPaymentMethod('Cash')}
+              >
                 <Banknote className="mr-2 h-4 w-4" />
                 Cash
               </Button>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="cash-amount" className="text-sm font-medium">
-              Cash Amount
-            </label>
-            <Input
-              id="cash-amount"
-              value={cashAmount}
-              onChange={(e) => setCashAmount(e.target.value)}
-              placeholder="Enter cash amount"
-            />
-          </div>
+          {/* Input Cash Amount & Change hanya jika metode adalah Cash */}
+          {paymentMethod === 'Cash' && (
+            <>
+              <div className="space-y-2">
+                <label htmlFor="cash-amount" className="text-sm font-medium">
+                  Cash Amount
+                </label>
+                <Input
+                  id="cash-amount"
+                  type="number"
+                  value={cashAmount}
+                  onChange={(e) => setCashAmount(e.target.value)}
+                  placeholder="Enter cash amount"
+                />
+              </div>
 
-          {cashAmount && (
-            <div className="flex justify-between font-medium">
-              <span>Change</span>
-              <span>{calculateChange()}</span>
-            </div>
+              <div className="flex justify-between font-medium">
+                <span>Change</span>
+                <span>{formatIndonesianCurrency(calculateChange())}</span>
+              </div>
+            </>
           )}
         </div>
         <DialogFooter>
@@ -85,6 +105,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
               setPaymentDialogOpen(false)
               setCart([])
               setCashAmount('')
+              setPaymentMethod(null)
             }}
             className="gap-2"
           >
