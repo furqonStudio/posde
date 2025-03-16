@@ -17,9 +17,9 @@ export type SimpleCategory = {
 export type Product = {
   id: number
   name: string
-  price: number | null
+  price: number
   category_id?: number
-  category: SimpleCategory | null
+  category: SimpleCategory
   image?: string
   stock: number
   description: string | null

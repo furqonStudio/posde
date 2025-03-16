@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Product } from '@/types'
+import { formatIndonesianCurrency } from '@/utils/format'
 import Image from 'next/image'
 
 interface ProductCardProps {
@@ -22,9 +23,13 @@ export function ProductCard({ product, addToCart }: ProductCardProps) {
             height={300}
             className="rounded-md object-cover"
           />
-          <div>
-            <h3 className="text-center text-sm font-medium">{product.name}</h3>
-            <p className="text-primary font-bold">{product.price}</p>
+          <div className="w-full">
+            <h3 className="truncate text-center text-sm font-medium">
+              {product.name}
+            </h3>
+            <p className="text-primary text-center font-bold">
+              {formatIndonesianCurrency(product.price)}
+            </p>
           </div>
         </div>
       </CardContent>
