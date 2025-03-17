@@ -19,11 +19,7 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
 }) => {
   const queryClient = useQueryClient()
 
-  const {
-    data: categories = [],
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
   })
@@ -143,9 +139,6 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       })
     },
   }
-
-  if (isLoading) return <LoadingState />
-  if (isError) return <ErrorState />
 
   return (
     <ReusableFormModal
