@@ -11,7 +11,7 @@ import { Button } from '../ui/button'
 import { Banknote, CreditCard, Receipt } from 'lucide-react'
 import { Input } from '../ui/input'
 import { CartItem } from '@/types'
-import { formatIndonesianCurrency } from '@/utils/format'
+import { formatIndonesianCurrency, formatNumberWithDots } from '@/utils/format'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ConfirmationAlert } from './ConfirmationAlert'
@@ -67,7 +67,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
     },
     onSuccess: () => {
       toast.success('Pembayaran berhasil!')
-      setCart([]) // Reset cart setelah order sukses
+      setCart([])
       setIsOpen(false)
       setConfirmOpen(false)
       setCashAmount('')
@@ -116,7 +116,6 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
             </div>
           </div>
 
-          {/* Cash Amount & Change jika metode adalah Cash */}
           {paymentMethod === 'cash' && (
             <>
               <div className="space-y-2">
@@ -125,9 +124,11 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
                 </label>
                 <Input
                   id="cash-amount"
-                  type="number"
+                  type="text"
                   value={cashAmount}
-                  onChange={(e) => setCashAmount(e.target.value)}
+                  onChange={(e) =>
+                    setCashAmount(formatNumberWithDots(e.target.value))
+                  }
                   placeholder="Enter cash amount"
                   autoComplete="off"
                 />

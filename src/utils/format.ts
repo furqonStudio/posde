@@ -45,3 +45,8 @@ export const formatIndonesianDateTime = (dateTime: string): string => {
     })
   )
 }
+
+export const formatNumberWithDots = (value: string) => {
+  const rawValue = value.replace(/\D/g, '')
+  return rawValue ? Number(rawValue).toLocaleString('id-ID') : ''
+}
