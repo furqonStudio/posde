@@ -11,6 +11,8 @@ import { Banknote, CreditCard, Receipt } from 'lucide-react'
 import { Input } from '../ui/input'
 import { CartItem } from '@/types'
 import { formatIndonesianCurrency } from '@/utils/format'
+import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 type PaymentDialogProps = {
   paymentDialogOpen: boolean
@@ -19,7 +21,6 @@ type PaymentDialogProps = {
   total: number
   paymentMethod: 'cash' | 'cashless' | null
   setPaymentMethod: (method: 'cash' | 'cashless' | null) => void
-  createOrder: (cashAmount?: number) => void
 }
 
 export const PaymentDialog: React.FC<PaymentDialogProps> = ({
@@ -29,14 +30,50 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
   total,
   paymentMethod,
   setPaymentMethod,
-  createOrder,
 }) => {
   const [cashAmount, setCashAmount] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const calculateChange = () => {
     const cashValue = Number.parseInt(cashAmount.replace(/\D/g, '')) || 0
     return Math.max(0, cashValue - total)
   }
+
+  // Query untuk mengirim order ke backend
+  const createOrderMutation = useMutation({
+    mutationFn: async () => {
+      const orderData = {
+        total,
+        paymentMethod,
+        cashAmount: paymentMethod === 'cash' ? Number(cashAmount) : undefined,
+        change: paymentMethod === 'cash' ? calculateChange() : undefined,
+        createdAt: new Date().toISOString(),
+      }
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Gagal membuat order')
+      }
+
+      return response.json()
+    },
+    onSuccess: () => {
+      toast.success('Pembayaran berhasil!')
+      setCart([]) // Reset cart setelah order sukses
+      setPaymentDialogOpen(false)
+      setConfirmOpen(false)
+      setCashAmount('')
+      setPaymentMethod(null)
+    },
+    onError: () => {
+      toast.error('Terjadi kesalahan saat membuat order')
+    },
+  })
 
   return (
     <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
@@ -89,6 +126,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
                   placeholder="Enter cash amount"
+                  autoComplete="off"
                 />
               </div>
 
@@ -104,15 +142,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
             Cancel
           </Button>
           <Button
-            onClick={() => {
-              createOrder(
-                paymentMethod === 'cash' ? Number(cashAmount) : undefined,
-              )
-              setPaymentDialogOpen(false)
-              setCart([])
-              setCashAmount('')
-              setPaymentMethod(null)
-            }}
+            onClick={() => setConfirmOpen(true)}
             disabled={!paymentMethod}
             className="gap-2"
           >
@@ -121,6 +151,31 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Konfirmasi sebelum menyelesaikan pembayaran */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Pembayaran</DialogTitle>
+          </DialogHeader>
+          <div className="text-center">
+            <p>Apakah Anda yakin ingin menyelesaikan pembayaran?</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={() => createOrderMutation.mutate()}
+              disabled={createOrderMutation.isPending}
+              className="gap-2"
+            >
+              <Receipt className="h-4 w-4" />
+              {createOrderMutation.isPending ? 'Processing...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }
