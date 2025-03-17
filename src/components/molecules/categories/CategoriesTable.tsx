@@ -34,7 +34,7 @@ export function CategoriesTable() {
   const {
     data: categories = [],
     isLoading,
-    error,
+    isError,
   } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
@@ -165,7 +165,7 @@ export function CategoriesTable() {
 
   if (isLoading) return <LoadingState />
 
-  if (error) return <ErrorState />
+  if (isError) return <ErrorState />
 
   return (
     <div className="w-full">

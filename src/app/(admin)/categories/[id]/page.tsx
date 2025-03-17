@@ -46,7 +46,7 @@ export default function CategoryDetailPage() {
   const {
     data: category,
     isLoading,
-    error,
+    isError,
   } = useQuery<Category>({
     queryKey: ['category', categoryId],
     queryFn: async () => {
@@ -86,7 +86,7 @@ export default function CategoryDetailPage() {
 
   if (isLoading) return <LoadingState />
 
-  if (error) return <ErrorState />
+  if (isError) return <ErrorState />
 
   return (
     <div className="w-full overflow-auto p-4">

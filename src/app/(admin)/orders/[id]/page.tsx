@@ -51,7 +51,7 @@ export default function OrderDetailPage() {
   const {
     data: order,
     isLoading,
-    error,
+    isError,
   } = useQuery({
     queryKey: ['order', orderId],
     queryFn: async () => {
@@ -110,7 +110,7 @@ export default function OrderDetailPage() {
 
   if (isLoading) return <LoadingState />
 
-  if (error) return <ErrorState />
+  if (isError) return <ErrorState />
 
   return (
     <div className="w-full overflow-auto p-4">

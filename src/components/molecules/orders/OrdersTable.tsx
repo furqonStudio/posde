@@ -35,7 +35,7 @@ export function OrdersTable() {
   const {
     data: orders = [],
     isLoading,
-    error,
+    isError,
   } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
@@ -140,7 +140,7 @@ export function OrdersTable() {
   )
 
   if (isLoading) return <LoadingState />
-  if (error) return <ErrorState />
+  if (isError) return <ErrorState />
 
   return (
     <div className="w-full">
