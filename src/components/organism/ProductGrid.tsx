@@ -65,7 +65,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ addToCart }) => {
         ) : categoriesError ? (
           <p>Error loading categories</p>
         ) : (
-          <Tabs defaultValue="all" className="w-full">
+          <Tabs defaultValue={String(activeCategory)} className="w-full">
             <TabsList className="mb-2 flex overflow-x-auto">
               {categories.map((category) => (
                 <TabsTrigger
