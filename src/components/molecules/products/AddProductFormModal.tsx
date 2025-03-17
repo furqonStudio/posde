@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { ReusableFormModal } from '../ReusableFormModal'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchCategories } from '@/lib/api'
+import type { Product } from '@/types'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import React, { useState } from 'react'
 import { toast } from 'sonner'
-import type { Category, Product, SimpleCategory } from '@/types'
+import { ErrorState } from '../ErrorState'
+import { LoadingState } from '../LoadingState'
+import { ReusableFormModal } from '../ReusableFormModal'
 
 interface AddProductFormModalProps {
   isOpen: boolean
@@ -14,7 +17,17 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [categories, setCategories] = useState<SimpleCategory[]>([])
+  const queryClient = useQueryClient()
+
+  const {
+    data: categories = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+  })
+
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     price: 0,
@@ -22,20 +35,6 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
     image: '',
     stock: 0,
   })
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get('http://localhost:8000/api/categories')
-        setCategories(data?.data ?? [])
-      } catch (err) {
-        toast.error('Gagal mengambil data kategori.')
-      }
-    }
-    fetchCategories()
-  }, [])
-
-  const queryClient = useQueryClient()
 
   const addProductMutation = useMutation({
     mutationFn: async (newProduct: Partial<Product>) => {
@@ -45,6 +44,9 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['products'] })
       onClose()
       toast.success('Produk berhasil ditambahkan.')
+    },
+    onError: () => {
+      toast.error('Gagal menambahkan produk.')
     },
   })
 
@@ -68,15 +70,15 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       id: 'name',
       label: 'Nama',
       type: 'text',
-      value: formData.name,
+      value: formData.name || '',
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setFormData({ ...formData, name: e.target.value }),
     },
     {
       id: 'description',
-      label: 'Description',
+      label: 'Deskripsi',
       type: 'text',
-      value: formData.description,
+      value: formData.description || '',
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setFormData({ ...formData, description: e.target.value }),
     },
@@ -141,6 +143,9 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       })
     },
   }
+
+  if (isLoading) return <LoadingState />
+  if (isError) return <ErrorState />
 
   return (
     <ReusableFormModal

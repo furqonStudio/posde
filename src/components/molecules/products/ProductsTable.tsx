@@ -16,6 +16,8 @@ import { ConfirmationAlert } from '../ConfirmationAlert'
 import { ReusableTable } from '../ReusableTable'
 import { AddProductFormModal } from './AddProductFormModal'
 import { EditProductFormModal } from './EditProductFormModal'
+import { ErrorState } from '../ErrorState'
+import { LoadingState } from '../LoadingState'
 
 export function ProductsTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -35,9 +37,7 @@ export function ProductsTable() {
   } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data } = await axios.get(
-        'http://localhost:8000/api/products?per_page=all',
-      )
+      const { data } = await axios.get('http://localhost:8000/api/products')
       return data?.data ?? []
     },
   })
@@ -184,13 +184,12 @@ export function ProductsTable() {
     },
   ]
 
+  if (isLoading) return <LoadingState />
+
+  if (error) return <ErrorState />
+
   return (
     <div className="w-full">
-      {error && (
-        <div className="mb-4 text-red-500">
-          Error loading products: {error.message}
-        </div>
-      )}
       <ReusableTable
         title="Products"
         columns={columns}

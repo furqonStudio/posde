@@ -1,9 +1,7 @@
 'use client'
-import React from 'react'
-import { DollarSign, ShoppingBag, TrendingUp } from 'lucide-react'
 import { DashboardCard } from '@/components/molecules/DashboardCard'
 import { DashboardListCard } from '@/components/molecules/DashboardListCard'
-import { SearchInput } from '@/components/molecules/SearchInput'
+import { DollarSign, ShoppingBag, TrendingUp } from 'lucide-react'
 
 const DashboardPage = () => {
   return (

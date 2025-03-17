@@ -57,7 +57,7 @@ export const EditCategoryFormModal: React.FC<EditCategoryFormModalProps> = ({
       id: 'name',
       label: 'Name',
       type: 'text',
-      value: formData.name,
+      value: formData.name || '',
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setFormData({ ...formData, name: e.target.value }),
     },

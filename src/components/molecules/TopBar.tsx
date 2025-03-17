@@ -1,6 +1,4 @@
 'use client'
-import React from 'react'
-import { SearchInput } from './SearchInput'
 
 const TopBar = () => {
   return (

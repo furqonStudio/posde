@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import { ReusableTable } from '../ReusableTable'
-import { toast } from 'sonner'
-import { type ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import type { Order } from '@/types'
+import {
+  formatIndonesianCurrency,
+  formatIndonesianDateTime,
+} from '@/utils/format'
+import { useQuery } from '@tanstack/react-query'
+import { type ColumnDef } from '@tanstack/react-table'
+import axios from 'axios'
 import { ArrowUpDown, Pencil } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -16,12 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select'
+import { ErrorState } from '../ErrorState'
+import { LoadingState } from '../LoadingState'
+import { ReusableTable } from '../ReusableTable'
 import { EditOrderFormModal } from './EditOrderFormModal'
-import axios from 'axios'
-import {
-  formatIndonesianCurrency,
-  formatIndonesianDateTime,
-} from '@/utils/format'
 
 export function OrdersTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -34,7 +35,6 @@ export function OrdersTable() {
   const {
     data: orders = [],
     isLoading,
-    isError,
     error,
   } = useQuery({
     queryKey: ['orders'],
@@ -43,12 +43,6 @@ export function OrdersTable() {
       return data?.data ?? []
     },
   })
-  console.log('🚀 ~ OrdersTable ~ orders:', orders)
-
-  // 🔥 Handle error fetching
-  if (isError) {
-    toast.error(error.message)
-  }
 
   // 🔥 Handle Edit Order
   const handleEdit = (order: Order, e: React.MouseEvent) => {
@@ -133,7 +127,7 @@ export function OrdersTable() {
 
   // 🔥 Filter Data Orders
   const filteredOrders = orders.filter(
-    (order: any) =>
+    (order: Order) =>
       ['id', 'status', 'createdAt'].some((key) =>
         order[key as keyof Order]
           .toString()
@@ -144,6 +138,9 @@ export function OrdersTable() {
         ? String(order.status).toLowerCase() === statusFilter.toLowerCase()
         : true),
   )
+
+  if (isLoading) return <LoadingState />
+  if (error) return <ErrorState />
 
   return (
     <div className="w-full">

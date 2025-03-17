@@ -1,18 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import {
-  ArrowLeft,
-  Calendar,
-  CreditCard,
-  Download,
-  Edit,
-  Package,
-  Pencil,
-  User,
-  X,
-} from 'lucide-react'
+import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
+import { ErrorState } from '@/components/molecules/ErrorState'
+import { LoadingState } from '@/components/molecules/LoadingState'
+import { EditOrderFormModal } from '@/components/molecules/orders/EditOrderFormModal'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -21,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -31,18 +22,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { orderData } from '@/data'
-import { ConfirmationAlert } from '@/components/molecules/ConfirmationAlert'
 import { Order, OrderItem } from '@/types'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
-import { EditOrderFormModal } from '@/components/molecules/orders/EditOrderFormModal'
 import {
   formatIndonesianCurrency,
   formatIndonesianDateTime,
 } from '@/utils/format'
-
-// Sample order data - in a real app, this would come from an API or database
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+import {
+  ArrowLeft,
+  CreditCard,
+  Download,
+  Package,
+  Pencil,
+  X,
+} from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function OrderDetailPage() {
   const params = useParams()
@@ -50,7 +46,6 @@ export default function OrderDetailPage() {
   const orderId = params.id as string
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
-  const queryClient = useQueryClient()
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
 
   const {
@@ -66,7 +61,6 @@ export default function OrderDetailPage() {
       return data?.data
     },
   })
-  console.log('ORDER', order)
 
   const handleEdit = () => {
     if (order) {
@@ -75,7 +69,6 @@ export default function OrderDetailPage() {
     setIsEditModalOpen(true)
   }
 
-  // Get status color
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed':
@@ -91,7 +84,6 @@ export default function OrderDetailPage() {
     }
   }
 
-  // Get payment status color
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'Paid':
@@ -105,33 +97,20 @@ export default function OrderDetailPage() {
     }
   }
 
-  // Handle cancel order
   const handleCancelOrder = () => {
     // In a real app, this would make an API call to cancel the order
     alert(`Order ${order.id} has been cancelled`)
     setIsCancelDialogOpen(false)
   }
 
-  // Handle print receipt
   const handlePrintReceipt = () => {
     // In a real app, this would generate a PDF or open a print dialog
     window.print()
   }
 
-  if (error || !order) {
-    return (
-      <div className="flex h-[70vh] flex-col items-center justify-center">
-        <h1 className="mb-4 text-2xl font-bold">Product Not Found</h1>
-        <p className="text-muted-foreground mb-6">
-          The product you are looking for does not exist.
-        </p>
-        <Button onClick={() => router.push('/products')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Products
-        </Button>
-      </div>
-    )
-  }
+  if (isLoading) return <LoadingState />
+
+  if (error) return <ErrorState />
 
   return (
     <div className="w-full overflow-auto p-4">

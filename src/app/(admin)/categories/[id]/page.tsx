@@ -29,6 +29,8 @@ import {
   formatIndonesianDateTime,
 } from '@/utils/format'
 import { EditCategoryFormModal } from '@/components/molecules/categories/EditCategoryFormModal'
+import { LoadingState } from '@/components/molecules/LoadingState'
+import { ErrorState } from '@/components/molecules/ErrorState'
 
 export default function CategoryDetailPage() {
   const params = useParams()
@@ -81,6 +83,10 @@ export default function CategoryDetailPage() {
   const handleDeleteCategory = () => {
     deleteCategoryMutation.mutate()
   }
+
+  if (isLoading) return <LoadingState />
+
+  if (error) return <ErrorState />
 
   return (
     <div className="w-full overflow-auto p-4">

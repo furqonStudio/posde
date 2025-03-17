@@ -15,6 +15,7 @@ import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 import type { CartItem } from '@/types'
 import { formatIndonesianCurrency } from '@/utils/format'
+import Image from 'next/image'
 
 interface OrderSideBarProps {
   cart: CartItem[]
@@ -80,7 +81,7 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
                     className="bg-background flex flex-col gap-3 rounded-lg p-2"
                   >
                     <div className="flex items-center gap-2">
-                      <img
+                      <Image
                         src={item.image || '/placeholder.svg'}
                         alt={item.name}
                         className="h-12 w-12 rounded"

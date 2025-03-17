@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-type ConfirmationProps<T> = {
+type ConfirmationProps = {
   title?: string
   description?: string
   cancelText?: string
@@ -27,7 +27,7 @@ export const ConfirmationAlert = ({
   open,
   onOpenChange,
   onClick,
-}: ConfirmationProps<{ name: string }>) => {
+}: ConfirmationProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>

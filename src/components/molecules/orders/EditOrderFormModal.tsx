@@ -20,7 +20,7 @@ export const EditOrderFormModal: React.FC<EditOrderFormModalProps> = ({
 
   useEffect(() => {
     if (order) {
-      setStatus(String(order.status)) // Pastikan status selalu string
+      setStatus(String(order.status))
     }
   }, [order])
 

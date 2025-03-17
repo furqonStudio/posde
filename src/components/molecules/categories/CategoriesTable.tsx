@@ -16,6 +16,8 @@ import { useState } from 'react'
 import { AddCategoryFormModal } from './AddCategoryFormModal'
 import { EditCategoryFormModal } from './EditCategoryFormModal'
 import { formatIndonesianDateTime } from '@/utils/format'
+import { LoadingState } from '../LoadingState'
+import { ErrorState } from '../ErrorState'
 
 export function CategoriesTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -160,6 +162,10 @@ export function CategoriesTable() {
       },
     },
   ]
+
+  if (isLoading) return <LoadingState />
+
+  if (error) return <ErrorState />
 
   return (
     <div className="w-full">

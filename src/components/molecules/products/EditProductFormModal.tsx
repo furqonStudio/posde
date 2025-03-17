@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import { ReusableFormModal } from '../ReusableFormModal'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchCategories } from '@/lib/api'
+import type { Product } from '@/types'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import type { Product, SimpleCategory } from '@/types'
+import { ReusableFormModal } from '../ReusableFormModal'
 
 interface EditProductFormModalProps {
   isOpen: boolean
@@ -16,7 +17,6 @@ export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
   onClose,
   product,
 }) => {
-  const [categories, setCategories] = useState<SimpleCategory[]>([])
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     price: 0,
@@ -25,17 +25,10 @@ export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
     stock: 0,
   })
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get('http://localhost:8000/api/categories')
-        setCategories(data?.data ?? [])
-      } catch (err) {
-        toast.error('Gagal mengambil data kategori.')
-      }
-    }
-    fetchCategories()
-  }, [])
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+  })
 
   useEffect(() => {
     if (product) {
@@ -81,7 +74,7 @@ export const EditProductFormModal: React.FC<EditProductFormModalProps> = ({
       id: 'name',
       label: 'Nama',
       type: 'text',
-      value: formData.name,
+      value: formData.name || '',
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setFormData({ ...formData, name: e.target.value }),
     },
