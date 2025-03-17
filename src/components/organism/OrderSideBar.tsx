@@ -20,7 +20,7 @@ interface OrderSideBarProps {
   cart: CartItem[]
   updateQuantity: (productId: number, change: number) => void
   removeItem: (productId: number) => void
-  subtotal: number
+  subtotal?: number
   total: number
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>
   setPaymentDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -132,10 +132,12 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
           <div className="border-t p-4">
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatIndonesianCurrency(subtotal)}</span>
-                </div>
+                {subtotal && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatIndonesianCurrency(subtotal)}</span>
+                  </div>
+                )}
                 <Separator />
                 <div className="flex justify-between font-bold">
                   <span>Total</span>

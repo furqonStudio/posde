@@ -6,7 +6,7 @@ import { ProductGrid } from '@/components/organism/ProductGrid'
 import { useCart } from '@/hooks/useCart'
 import { PaymentDialog } from '@/components/molecules/PaymentDialog'
 
-export default function Dashboard() {
+export default function Menu() {
   const {
     cart,
     setCart,
@@ -17,25 +17,32 @@ export default function Dashboard() {
     calculateTotal,
   } = useCart()
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | null>(
-    null,
-  )
+  const [paymentMethod, setPaymentMethod] = useState<
+    'cash' | 'cashless' | null
+  >(null)
 
-  const subtotal = calculateSubtotal()
   const total = calculateTotal()
 
   // Fungsi untuk membuat order
-  const createOrder = async (cashAmount?: number) => {
+  const createOrder = async (paidAmount?: number) => {
     try {
+      if (!paymentMethod) {
+        console.error('Metode pembayaran harus dipilih.')
+        return
+      }
+
       const orderData = {
-        items: cart,
-        total,
-        subtotal,
-        paymentMethod,
-        cashAmount: paymentMethod === 'Cash' ? cashAmount : undefined,
-        change:
-          paymentMethod === 'Cash' ? (cashAmount || 0) - total : undefined,
-        createdAt: new Date().toISOString(),
+        items: cart.map((item) => ({
+          product_id: item.id,
+          quantity: item.quantity,
+        })),
+        payment: {
+          method: paymentMethod,
+          amount: total,
+          paid_amount: paymentMethod === 'cash' ? paidAmount : undefined,
+          change:
+            paymentMethod === 'cash' ? (paidAmount || 0) - total : undefined,
+        },
       }
 
       console.log('Order Created:', orderData)
@@ -65,7 +72,6 @@ export default function Dashboard() {
         cart={cart}
         updateQuantity={updateQuantity}
         removeItem={removeItem}
-        subtotal={subtotal}
         total={total}
         setCart={setCart}
         setPaymentDialogOpen={setPaymentDialogOpen}

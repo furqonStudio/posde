@@ -17,8 +17,8 @@ type PaymentDialogProps = {
   setPaymentDialogOpen: (open: boolean) => void
   setCart: (cart: CartItem[]) => void
   total: number
-  paymentMethod: 'Cash' | 'Card' | null
-  setPaymentMethod: (method: 'Cash' | 'Card' | null) => void
+  paymentMethod: 'cash' | 'cashless' | null
+  setPaymentMethod: (method: 'cash' | 'cashless' | null) => void
   createOrder: (cashAmount?: number) => void
 }
 
@@ -55,20 +55,20 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
             <label className="text-sm font-medium">Payment Method</label>
             <div className="grid grid-cols-2 gap-2">
               <Button
-                variant={paymentMethod === 'Card' ? 'default' : 'outline'}
+                variant={paymentMethod === 'cashless' ? 'default' : 'outline'}
                 className="justify-start"
                 onClick={() => {
-                  setPaymentMethod('Card')
+                  setPaymentMethod('cashless')
                   setCashAmount('')
                 }}
               >
                 <CreditCard className="mr-2 h-4 w-4" />
-                Card
+                Cashless
               </Button>
               <Button
-                variant={paymentMethod === 'Cash' ? 'default' : 'outline'}
+                variant={paymentMethod === 'cash' ? 'default' : 'outline'}
                 className="justify-start"
-                onClick={() => setPaymentMethod('Cash')}
+                onClick={() => setPaymentMethod('cash')}
               >
                 <Banknote className="mr-2 h-4 w-4" />
                 Cash
@@ -77,7 +77,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
           </div>
 
           {/* Cash Amount & Change jika metode adalah Cash */}
-          {paymentMethod === 'Cash' && (
+          {paymentMethod === 'cash' && (
             <>
               <div className="space-y-2">
                 <label htmlFor="cash-amount" className="text-sm font-medium">
@@ -85,6 +85,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
                 </label>
                 <Input
                   id="cash-amount"
+                  type="number"
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
                   placeholder="Enter cash amount"
@@ -105,7 +106,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
           <Button
             onClick={() => {
               createOrder(
-                paymentMethod === 'Cash' ? Number(cashAmount) : undefined,
+                paymentMethod === 'cash' ? Number(cashAmount) : undefined,
               )
               setPaymentDialogOpen(false)
               setCart([])
