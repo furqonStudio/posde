@@ -7,7 +7,20 @@ type Item = {
 }
 
 export type CartItem = Item
-export type OrderItem = Item
+
+export type OrderItem = {
+  id: number
+  quantity: number
+  subtotal: number
+  product: SimpleProduct
+}
+
+export type SimpleProduct = {
+  id: number
+  name: string
+  price: number
+  stock: number
+}
 
 export type SimpleCategory = {
   id: number

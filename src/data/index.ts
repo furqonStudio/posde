@@ -1,9 +1,6 @@
-import { Product } from '@/types'
-import type { Order } from '@/types'
 import {
   LayoutDashboard,
   ShoppingBag,
-  Users,
   Settings,
   SquareMenu,
   Package,
@@ -23,7 +20,7 @@ export const categories = [
   },
 ]
 
-export const products: Product[] = [
+export const products = [
   {
     id: 1,
     name: 'Chicken Rice',
@@ -175,7 +172,7 @@ export const menuItems = [
   { icon: Settings, label: 'Settings', href: '/settings' },
 ]
 
-export const orders: Order[] = [
+export const orders = [
   {
     id: 1,
     totalPrice: 100.0,

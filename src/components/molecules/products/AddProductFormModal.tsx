@@ -131,9 +131,9 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       value: category.id,
       label: category.name,
     })),
-    onChange: (value: number) => {
+    onChange: (value: string | number) => {
       const selectedCategory = categories.find(
-        (category) => category.id === value,
+        (category) => category.id === Number(value),
       )
       setFormData({
         ...formData,
