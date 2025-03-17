@@ -82,8 +82,10 @@ export const OrderSideBar: React.FC<OrderSideBarProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src={item.image || '/placeholder.svg'}
+                        src={item.image || '/botol.jpg'}
                         alt={item.name}
+                        width={200}
+                        height={200}
                         className="h-12 w-12 rounded"
                       />
                       <div className="min-w-0 flex-1">

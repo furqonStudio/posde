@@ -37,8 +37,12 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
     'cash' | 'cashless' | null
   >(null)
 
+  const parseAmount = (value: string) => {
+    return Number(value.replace(/\./g, '').replace(',', '.')) || 0
+  }
+
   const calculateChange = () => {
-    const cashValue = Number.parseInt(cashAmount.replace(/\D/g, '')) || 0
+    const cashValue = parseAmount(cashAmount)
     return Math.max(0, cashValue - total)
   }
 
@@ -52,11 +56,12 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
         payment: {
           method: paymentMethod,
           amount: total,
-          paid_amount: paymentMethod === 'cash' ? cashAmount : undefined,
-          change:
-            paymentMethod === 'cash' ? Number(cashAmount) - total : undefined,
+          paid_amount:
+            paymentMethod === 'cash' ? parseAmount(cashAmount) : undefined,
+          change: paymentMethod === 'cash' ? calculateChange() : undefined,
         },
       }
+      console.log('🚀 ~ mutationFn: ~ orderData:', orderData)
 
       const response = await axios.post(
         'http://localhost:8000/api/orders',
@@ -90,7 +95,6 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
             <span>{formatIndonesianCurrency(total)}</span>
           </div>
 
-          {/* Payment Method */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Payment Method</label>
             <div className="grid grid-cols-2 gap-2">
@@ -160,6 +164,9 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         onClick={() => createOrderMutation.mutate()}
+        title="Confirm Payment"
+        description="Are you sure you want to complete this payment? Once confirmed, this transaction cannot be undone."
+        actionText="Pay"
       />
     </Dialog>
   )

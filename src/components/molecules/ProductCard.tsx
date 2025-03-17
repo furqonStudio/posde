@@ -9,12 +9,16 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, addToCart }: ProductCardProps) {
+  const isOutOfStock = product.stock === 0
+
   return (
     <Card
-      className="hover:border-primary cursor-pointer overflow-hidden p-0 transition-colors"
-      onClick={() => addToCart(product)}
+      className={`hover:border-primary overflow-hidden p-0 transition-colors ${
+        isOutOfStock ? 'pointer-events-none grayscale' : 'cursor-pointer'
+      }`}
+      onClick={() => !isOutOfStock && addToCart(product)}
     >
-      <CardContent className="p-2">
+      <CardContent className="relative p-2">
         <div className="flex flex-col items-center gap-2">
           <Image
             src={'/botol.jpg'}
@@ -32,6 +36,12 @@ export function ProductCard({ product, addToCart }: ProductCardProps) {
             </p>
           </div>
         </div>
+
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+            <p className="z-10 text-sm font-bold text-white">Stok Habis</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
