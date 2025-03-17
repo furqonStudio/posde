@@ -17,24 +17,25 @@ import { toast } from 'sonner'
 import { ConfirmationAlert } from './ConfirmationAlert'
 
 type PaymentDialogProps = {
-  paymentDialogOpen: boolean
-  setPaymentDialogOpen: (open: boolean) => void
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
   setCart: (cart: CartItem[]) => void
   total: number
-  paymentMethod: 'cash' | 'cashless' | null
-  setPaymentMethod: (method: 'cash' | 'cashless' | null) => void
+  cart: CartItem[]
 }
 
 export const PaymentDialog: React.FC<PaymentDialogProps> = ({
-  paymentDialogOpen,
-  setPaymentDialogOpen,
+  isOpen,
+  setIsOpen,
   setCart,
   total,
-  paymentMethod,
-  setPaymentMethod,
+  cart,
 }) => {
   const [cashAmount, setCashAmount] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<
+    'cash' | 'cashless' | null
+  >(null)
 
   const calculateChange = () => {
     const cashValue = Number.parseInt(cashAmount.replace(/\D/g, '')) || 0
@@ -44,11 +45,17 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const createOrderMutation = useMutation({
     mutationFn: async () => {
       const orderData = {
-        total,
-        paymentMethod,
-        cashAmount: paymentMethod === 'cash' ? Number(cashAmount) : undefined,
-        change: paymentMethod === 'cash' ? calculateChange() : undefined,
-        createdAt: new Date().toISOString(),
+        items: cart.map((item) => ({
+          product_id: item.id,
+          quantity: item.quantity,
+        })),
+        payment: {
+          method: paymentMethod,
+          amount: total,
+          paid_amount: paymentMethod === 'cash' ? cashAmount : undefined,
+          change:
+            paymentMethod === 'cash' ? Number(cashAmount) - total : undefined,
+        },
       }
 
       const response = await axios.post(
@@ -61,7 +68,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
     onSuccess: () => {
       toast.success('Pembayaran berhasil!')
       setCart([]) // Reset cart setelah order sukses
-      setPaymentDialogOpen(false)
+      setIsOpen(false)
       setConfirmOpen(false)
       setCashAmount('')
       setPaymentMethod(null)
@@ -72,7 +79,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
   })
 
   return (
-    <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Payment</DialogTitle>
@@ -134,7 +141,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
           <Button
