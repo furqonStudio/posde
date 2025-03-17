@@ -1,3 +1,4 @@
+import axios from 'axios'
 import React, { useState } from 'react'
 import {
   Dialog,
@@ -13,6 +14,7 @@ import { CartItem } from '@/types'
 import { formatIndonesianCurrency } from '@/utils/format'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { ConfirmationAlert } from './ConfirmationAlert'
 
 type PaymentDialogProps = {
   paymentDialogOpen: boolean
@@ -39,7 +41,6 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
     return Math.max(0, cashValue - total)
   }
 
-  // Query untuk mengirim order ke backend
   const createOrderMutation = useMutation({
     mutationFn: async () => {
       const orderData = {
@@ -50,17 +51,12 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
         createdAt: new Date().toISOString(),
       }
 
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
-      })
+      const response = await axios.post(
+        'http://localhost:8000/api/orders',
+        orderData,
+      )
 
-      if (!response.ok) {
-        throw new Error('Gagal membuat order')
-      }
-
-      return response.json()
+      return response.data
     },
     onSuccess: () => {
       toast.success('Pembayaran berhasil!')
@@ -152,30 +148,11 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({
         </DialogFooter>
       </DialogContent>
 
-      {/* Konfirmasi sebelum menyelesaikan pembayaran */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Pembayaran</DialogTitle>
-          </DialogHeader>
-          <div className="text-center">
-            <p>Apakah Anda yakin ingin menyelesaikan pembayaran?</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-              Batal
-            </Button>
-            <Button
-              onClick={() => createOrderMutation.mutate()}
-              disabled={createOrderMutation.isPending}
-              className="gap-2"
-            >
-              <Receipt className="h-4 w-4" />
-              {createOrderMutation.isPending ? 'Processing...' : 'Confirm'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationAlert
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onClick={() => createOrderMutation.mutate()}
+      />
     </Dialog>
   )
 }
