@@ -37,7 +37,9 @@ export function ProductsTable() {
   } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data } = await axios.get('http://localhost:8000/api/products')
+      const { data } = await axios.get(
+        'http://localhost:8000/api/products?per_page=100',
+      )
       return data?.data ?? []
     },
   })
