@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
@@ -18,12 +17,14 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { Input } from '@/components/ui/input'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -33,16 +34,17 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 async function loginUser(data: LoginFormValues): Promise<{ success: boolean }> {
-  const response = await new Promise<{ success: boolean }>((resolve) =>
-    setTimeout(() => {
-      if (data.email === 'test@example.com' && data.password === 'password') {
-        resolve({ success: true })
-      } else {
-        resolve({ success: false })
-      }
-    }, 1000),
-  )
-  return response
+  try {
+    const response = await axios.post('http://localhost:8000/api/login', data)
+
+    return response.data
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    } else {
+      throw new Error('Something went wrong. Please try again.')
+    }
+  }
 }
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
