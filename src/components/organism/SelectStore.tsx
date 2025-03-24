@@ -9,6 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useState } from 'react'
+import { ConfirmationAlert } from '../molecules/ConfirmationAlert'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 
 const mockStores = [
   {
@@ -23,7 +27,35 @@ const mockStores = [
   },
 ]
 
+const useStoreSelection = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (store) => Promise.resolve(store),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['selectedStore'], data)
+    },
+  })
+}
+
 export default function SelectStore() {
+  const [selectedStore, setSelectedStore] = useState(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { mutate: selectStore } = useStoreSelection()
+  const router = useRouter()
+  const handleSelectStore = (store: any) => {
+    setSelectedStore(store)
+    setIsDialogOpen(true)
+  }
+
+  const handleConfirmStore = () => {
+    if (selectedStore) {
+      selectStore(selectedStore)
+    }
+    router.push('/dashboard')
+    setIsDialogOpen(false)
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -38,27 +70,19 @@ export default function SelectStore() {
             <div className="space-y-4">
               <div className="grid gap-2">
                 {mockStores.map((store) => (
-                  <form
+                  <Button
                     key={store.id}
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      alert(`Selected Store: ${store.name}`)
-                    }}
+                    variant="outline"
+                    className="h-auto w-full justify-start px-4 py-3"
+                    onClick={() => handleSelectStore(store)}
                   >
-                    <input type="hidden" name="storeId" value={store.id} />
-                    <Button
-                      type="submit"
-                      variant="outline"
-                      className="h-auto w-full justify-start px-4 py-3"
-                    >
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">{store.name}</span>
-                        <span className="text-muted-foreground text-sm">
-                          {store.description}
-                        </span>
-                      </div>
-                    </Button>
-                  </form>
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">{store.name}</span>
+                      <span className="text-muted-foreground text-sm">
+                        {store.description}
+                      </span>
+                    </div>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -74,6 +98,15 @@ export default function SelectStore() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmationAlert
+        title="Confirm Store Selection"
+        description=" Are you sure you want to select this store?"
+        onClick={handleConfirmStore}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        actionText="Confirm"
+      />
     </div>
   )
 }
