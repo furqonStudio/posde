@@ -1,7 +1,12 @@
+import SelectStore from '@/components/organism/SelectStore'
 import React from 'react'
 
 const SelectStorePage = () => {
-  return <div>SelectStorePage</div>
+  return (
+    <div>
+      <SelectStore />
+    </div>
+  )
 }
 
 export default SelectStorePage

@@ -1,5 +1,5 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,23 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// import { selectStore } from "./actions"
 
-// Mock data - in a real app, this would come from your database
 const mockStores = [
-  // Empty array to simulate a user with no stores
-  // In a real app, you would fetch the user's stores from your database
+  {
+    id: '1',
+    name: 'Store Alpha',
+    description: 'Your primary store for electronics.',
+  },
+  {
+    id: '2',
+    name: 'Store Beta',
+    description: 'Clothing and fashion store.',
+  },
 ]
 
-export default function SelectStorePage() {
-  // Check if the user is authenticated
-  const cookieStore = cookies()
-  const authToken = cookieStore.get('auth-token')
-
-  if (!authToken) {
-    redirect('/login')
-  }
-
+export default function SelectStore() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -39,8 +37,14 @@ export default function SelectStorePage() {
           {mockStores.length > 0 ? (
             <div className="space-y-4">
               <div className="grid gap-2">
-                {mockStores.map((store, index) => (
-                  <form key={index} action={selectStore}>
+                {mockStores.map((store) => (
+                  <form
+                    key={store.id}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      alert(`Selected Store: ${store.name}`)
+                    }}
+                  >
                     <input type="hidden" name="storeId" value={store.id} />
                     <Button
                       type="submit"
@@ -59,15 +63,15 @@ export default function SelectStorePage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-4 py-6 text-center">
-              <p className="text-muted-foreground">
-                You don&apos;t have any stores yet.
-              </p>
-              <Button asChild>
-                <Link href="/create-store">Create a Store</Link>
-              </Button>
-            </div>
+            <p className="text-muted-foreground text-center">
+              You don&apos;t have any stores yet.
+            </p>
           )}
+          <div className="text-center">
+            <Button asChild>
+              <Link href="/create-store">Create a Store</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
