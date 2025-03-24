@@ -64,7 +64,7 @@ async function signupUser(
   return response
 }
 
-export default function SignupForm() {
+export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
   const router = useRouter()
 
   const form = useForm<SignupFormValues>({
@@ -187,9 +187,13 @@ export default function SignupForm() {
             </Button>
             <div className="text-center text-sm">
               Already have an account?{' '}
-              <Link href="/login" className="text-primary hover:underline">
+              <button
+                type="button"
+                onClick={onSwitch}
+                className="text-primary hover:cursor-pointer hover:underline"
+              >
                 Login
-              </Link>
+              </button>
             </div>
           </CardFooter>
         </form>
