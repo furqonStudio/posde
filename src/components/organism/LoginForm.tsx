@@ -17,6 +17,7 @@ import {
 import Link from 'next/link'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { redirect, useRouter } from 'next/navigation'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -49,10 +50,13 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   })
 
+  const router = useRouter()
+
   const mutation = useMutation<{ message: string }, Error, LoginFormValues>({
     mutationFn: loginUser,
     onSuccess: ({ message }) => {
-      toast(message)
+      toast.success(message)
+      router.push('/select-store')
     },
   })
 
