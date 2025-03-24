@@ -76,7 +76,7 @@ export default function LoginForm() {
   }
 
   return (
-    <Card className="max-w-md">
+    <Card className="w-sm">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Login</CardTitle>
         <CardDescription>
@@ -96,6 +96,7 @@ export default function LoginForm() {
                     <Input
                       type="email"
                       placeholder="you@example.com"
+                      disabled={mutation.isPending}
                       {...field}
                     />
                   </FormControl>
@@ -113,6 +114,7 @@ export default function LoginForm() {
                     <Input
                       type="password"
                       placeholder="Your password"
+                      disabled={mutation.isPending}
                       {...field}
                     />
                   </FormControl>
