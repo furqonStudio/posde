@@ -1,5 +1,11 @@
-import Link from 'next/link'
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
@@ -8,10 +14,52 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import Link from 'next/link'
+import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
+
+const loginUser = async ({
+  email,
+  password,
+}: LoginFormValues): Promise<{ message: string }> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (email === 'user@example.com' && password === 'password123') {
+        resolve({ message: 'Login successful!' })
+      } else {
+        reject(new Error('Invalid email or password'))
+      }
+    }, 1000)
+  })
+}
 
 export default function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  const mutation = useMutation<{ message: string }, Error, LoginFormValues>({
+    mutationFn: loginUser,
+    onSuccess: ({ message }) => {
+      toast(message)
+    },
+  })
+
+  const onSubmit = (data: LoginFormValues) => {
+    mutation.mutate(data)
+  }
+
   return (
     <Card className="max-w-xs">
       <CardHeader className="space-y-1">
@@ -20,17 +68,25 @@ export default function LoginForm() {
           Enter your email and password to login to your account
         </CardDescription>
       </CardHeader>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
+          {mutation.isError && (
+            <div className="rounded-md bg-red-100 p-2 text-sm text-red-600">
+              {mutation.error.message}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              name="email"
               type="email"
-              placeholder="m@example.com"
-              required
+              placeholder="user@example.com"
+              {...register('email')}
+              className={errors.email ? 'border-red-500' : ''}
             />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -42,12 +98,24 @@ export default function LoginForm() {
                 Forgot password?
               </Link>
             </div>
-            <Input id="password" name="password" type="password" required />
+            <Input
+              id="password"
+              type="password"
+              {...register('password')}
+              className={errors.password ? 'border-red-500' : ''}
+            />
+            {errors.password && (
+              <p className="text-sm text-red-500">{errors.password.message}</p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="mt-4 flex flex-col space-y-4">
-          <Button type="submit" className="w-full">
-            Login
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? 'Logging in...' : 'Login'}
           </Button>
           <div className="text-center text-sm">
             Don&apos;t have an account?{' '}
