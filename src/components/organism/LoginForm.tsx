@@ -23,6 +23,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useMutation } from '@tanstack/react-query'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -30,6 +31,19 @@ const loginSchema = z.object({
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
+
+async function loginUser(data: LoginFormValues): Promise<{ success: boolean }> {
+  const response = await new Promise<{ success: boolean }>((resolve) =>
+    setTimeout(() => {
+      if (data.email === 'test@example.com' && data.password === 'password') {
+        resolve({ success: true })
+      } else {
+        resolve({ success: false })
+      }
+    }, 1000),
+  )
+  return response
+}
 
 export default function LoginForm() {
   const router = useRouter()
@@ -42,13 +56,23 @@ export default function LoginForm() {
     },
   })
 
+  const mutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('Login successful!')
+        router.push('/select-store')
+      } else {
+        toast.error('Invalid email or password')
+      }
+    },
+    onError: () => {
+      toast.error('Something went wrong. Please try again.')
+    },
+  })
+
   const onSubmit = (data: LoginFormValues) => {
-    if (data.email === 'test@example.com' && data.password === 'password') {
-      toast.success('Login successful!')
-      router.push('/select-store')
-    } else {
-      toast.error('Invalid email or password')
-    }
+    mutation.mutate(data)
   }
 
   return (
@@ -98,8 +122,12 @@ export default function LoginForm() {
             />
           </CardContent>
           <CardFooter className="mt-4 flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              Login
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? 'Logging in...' : 'Login'}
             </Button>
             <div className="text-center text-sm">
               Don't have an account?{' '}
