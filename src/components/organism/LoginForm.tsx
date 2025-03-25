@@ -68,8 +68,8 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         toast.error('Invalid email or password')
       }
     },
-    onError: () => {
-      toast.error('Something went wrong. Please try again.')
+    onError: (error: Error) => {
+      toast.error(error.message)
     },
   })
 

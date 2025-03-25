@@ -26,6 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import axios from 'axios'
 
 // Validasi formulir menggunakan zod
 const signupSchema = z
@@ -49,19 +50,38 @@ const signupSchema = z
 
 type SignupFormValues = z.infer<typeof signupSchema>
 
-async function signupUser(
-  data: SignupFormValues,
-): Promise<{ success: boolean }> {
-  const response = await new Promise<{ success: boolean }>((resolve) =>
-    setTimeout(() => {
-      if (data.email === 'existing@example.com') {
-        resolve({ success: false })
-      } else {
-        resolve({ success: true })
-      }
-    }, 1000),
-  )
-  return response
+interface SignupPayload {
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+}
+
+// Transform data
+function transformSignupData(data: SignupFormValues): SignupPayload {
+  return {
+    name: data.name,
+    email: data.email,
+    password: data.password,
+    password_confirmation: data.confirmPassword,
+  }
+}
+
+async function signupUser(data: SignupPayload): Promise<{ success: boolean }> {
+  try {
+    const response = await axios.post(
+      'http://localhost:8000/api/register',
+      data,
+    )
+
+    return response.data
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    } else {
+      throw new Error('Something went wrong. Please try again.')
+    }
+  }
 }
 
 export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
@@ -82,18 +102,19 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
     onSuccess: (data) => {
       if (data.success) {
         toast.success('Account created successfully!')
-        router.push('/login')
+        router.push('/select-store')
       } else {
         toast.error('Email already exists')
       }
     },
-    onError: () => {
-      toast.error('Something went wrong. Please try again.')
+    onError: (error: Error) => {
+      toast.error(error.message)
     },
   })
 
   const onSubmit = (data: SignupFormValues) => {
-    mutation.mutate(data)
+    const payload = transformSignupData(data)
+    mutation.mutate(payload)
   }
 
   return (
