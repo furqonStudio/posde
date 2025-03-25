@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -14,7 +13,6 @@ import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,7 +23,6 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
 import axios from 'axios'
 
 // Validasi formulir menggunakan zod
@@ -85,8 +82,6 @@ async function signupUser(data: SignupPayload): Promise<{ success: boolean }> {
 }
 
 export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
-  const router = useRouter()
-
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -102,7 +97,7 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
     onSuccess: (data) => {
       if (data.success) {
         toast.success('Account created successfully!')
-        router.push('/select-store')
+        onSwitch()
       } else {
         toast.error('Email already exists')
       }
