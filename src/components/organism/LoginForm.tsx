@@ -33,7 +33,9 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
-async function loginUser(data: LoginFormValues): Promise<{ success: boolean }> {
+async function loginUser(
+  data: LoginFormValues,
+): Promise<{ success: boolean; data?: { user: { store_id: string | null } } }> {
   try {
     const response = await axios.post('http://localhost:8000/api/login', data)
 
@@ -63,7 +65,11 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     onSuccess: (data) => {
       if (data.success) {
         toast.success('Login successful!')
-        router.push('/select-store')
+        if (data.data?.user.store_id === null) {
+          router.push('/select-store')
+        } else {
+          router.push('/dashboard')
+        }
       } else {
         toast.error('Invalid email or password')
       }
