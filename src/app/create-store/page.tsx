@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
 
@@ -49,6 +49,10 @@ const fetchBusinessTypes = async () => {
 }
 
 export default function CreateStorePage() {
+  const queryClient = useQueryClient()
+  const user = queryClient.getQueryData<{ id: string }>(['user'])
+  console.log('🚀 ~ mutationFn: ~ user:', user)
+
   const {
     data: businessTypes,
     isLoading,
@@ -82,7 +86,27 @@ export default function CreateStorePage() {
         'http://localhost:8000/api/stores',
         transformedData,
       )
-      return response.data
+
+      const storeData = response.data
+
+      queryClient.setQueryData(['user'], (oldUser: any) => {
+        if (oldUser) {
+          return {
+            ...oldUser,
+            store_id: storeData.id,
+          }
+        }
+        return oldUser
+      })
+
+      const user = queryClient.getQueryData<{ id: string }>(['user'])
+
+      const userId = user?.id
+      await axios.put(`http://localhost:8000/api/users/${userId}`, {
+        store_id: parseInt(storeData.id),
+      })
+
+      return storeData
     },
     onSuccess: () => {
       toast.success('Store created successfully!')

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -51,6 +51,7 @@ async function loginUser(
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -65,6 +66,9 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     onSuccess: (data) => {
       if (data.success) {
         toast.success('Login successful!')
+
+        queryClient.setQueryData(['user'], data.data?.user)
+
         if (data.data?.user.store_id === null) {
           router.push('/create-store')
         } else {
