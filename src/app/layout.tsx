@@ -3,6 +3,7 @@ import { Geist } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { ReactQueryProvider } from '@/components/molecules/ReactQueryProvider'
+import { UserProvider } from '@/components/molecules/UserProvider'
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -21,10 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.className} antialiased`}>
-        <ReactQueryProvider>
-          <Toaster richColors />
-          {children}
-        </ReactQueryProvider>
+        <UserProvider>
+          <ReactQueryProvider>
+            <Toaster richColors />
+            {children}
+          </ReactQueryProvider>
+        </UserProvider>
       </body>
     </html>
   )

@@ -1,13 +1,16 @@
 'use client'
 import { DashboardCard } from '@/components/molecules/DashboardCard'
 import { DashboardListCard } from '@/components/molecules/DashboardListCard'
+import { useUser } from '@/components/molecules/UserProvider'
 import { useQueryClient } from '@tanstack/react-query'
 import { DollarSign, ShoppingBag, TrendingUp } from 'lucide-react'
 
 const DashboardPage = () => {
   const queryClient = useQueryClient()
   const user = queryClient.getQueryData<{ id: string }>(['user'])
-  console.log('🚀 ~ DashboardPage ~ user:', user)
+  console.log('RQ', user)
+  const { user: userContext } = useUser()
+  console.log('CONTEXT', userContext)
   return (
     <div className="w-full overflow-scroll p-4">
       <h2 className="text-lg font-medium">Dashboard</h2>

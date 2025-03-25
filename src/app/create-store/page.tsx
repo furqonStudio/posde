@@ -33,6 +33,7 @@ import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useUser } from '@/components/molecules/UserProvider'
 
 // Zod Schema for Validation
 const createStoreSchema = z.object({
@@ -49,9 +50,8 @@ const fetchBusinessTypes = async () => {
 }
 
 export default function CreateStorePage() {
-  const queryClient = useQueryClient()
-  const user = queryClient.getQueryData<{ id: string }>(['user'])
-  console.log('🚀 ~ mutationFn: ~ user:', user)
+  const { user } = useUser()
+  console.log('🚀 ~ CreateStorePage ~ user:', user)
 
   const {
     data: businessTypes,
@@ -87,22 +87,9 @@ export default function CreateStorePage() {
         transformedData,
       )
 
-      const storeData = response.data
+      const storeData = response.data.data
 
-      queryClient.setQueryData(['user'], (oldUser: any) => {
-        if (oldUser) {
-          return {
-            ...oldUser,
-            store_id: storeData.id,
-          }
-        }
-        return oldUser
-      })
-
-      const user = queryClient.getQueryData<{ id: string }>(['user'])
-
-      const userId = user?.id
-      await axios.put(`http://localhost:8000/api/users/${userId}`, {
+      await axios.patch(`http://localhost:8000/api/users/${user?.id}`, {
         store_id: parseInt(storeData.id),
       })
 

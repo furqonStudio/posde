@@ -25,6 +25,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { User, useUser } from '../molecules/UserProvider'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -35,10 +36,9 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 async function loginUser(
   data: LoginFormValues,
-): Promise<{ success: boolean; data?: { user: { store_id: string | null } } }> {
+): Promise<{ success: boolean; data?: { user: User } }> {
   try {
     const response = await axios.post('http://localhost:8000/api/login', data)
-
     return response.data
   } catch (error: any) {
     if (error.response?.data?.message) {
@@ -52,6 +52,7 @@ async function loginUser(
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { setUser } = useUser()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -64,12 +65,15 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const mutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      if (data.success) {
+      if (data.success && data.data) {
         toast.success('Login successful!')
 
         queryClient.setQueryData(['user'], data.data?.user)
 
-        if (data.data?.user.store_id === null) {
+        // Simpan user ke context dan localStorage
+        setUser(data.data.user)
+
+        if (data.data.user.store_id === null) {
           router.push('/create-store')
         } else {
           router.push('/dashboard')
