@@ -72,10 +72,15 @@ export default function CreateStorePage() {
   // React Query Mutation
   const mutation = useMutation({
     mutationFn: async (data: CreateStoreFormValues) => {
-      console.log(data)
+      const transformedData = {
+        name: data.name,
+        address: data.address,
+        business_type: data.businessType,
+      }
+
       const response = await axios.post(
         'http://localhost:8000/api/stores',
-        data,
+        transformedData,
       )
       return response.data
     },
@@ -143,12 +148,9 @@ export default function CreateStorePage() {
                           <SelectValue placeholder="Select a type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {businessTypes?.map((type) => (
+                          {businessTypes?.map((type: string) => (
                             <SelectItem key={type} value={type}>
-                              {type
-                                .toLowerCase()
-                                .replace(/_/g, ' ')
-                                .replace(/\b\w/g, (char) => char.toUpperCase())}
+                              {type}
                             </SelectItem>
                           ))}
                         </SelectContent>
