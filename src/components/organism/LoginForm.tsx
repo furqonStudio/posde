@@ -66,7 +66,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       if (data.success) {
         toast.success('Login successful!')
         if (data.data?.user.store_id === null) {
-          router.push('/select-store')
+          router.push('/create-store')
         } else {
           router.push('/dashboard')
         }
