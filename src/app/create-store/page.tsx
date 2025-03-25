@@ -1,4 +1,5 @@
 'use client'
+
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -29,54 +30,90 @@ import {
 } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+import { toast } from 'sonner'
 
 // Zod Schema for Validation
 const createStoreSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   address: z.string().min(1, 'Address is required'),
-  phone: z
-    .string()
-    .regex(/^(\+62|62|0)?8[1-9][0-9]{6,10}$/, 'Invalid phone number')
-    .min(1, 'Phone number is required'),
-  email: z.string().email('Invalid email address'),
-  category: z.string().min(1, 'Category is required'),
+  businessType: z.string().min(1, 'Business type is required'),
 })
 
 type CreateStoreFormValues = z.infer<typeof createStoreSchema>
 
+const fetchBusinessTypes = async () => {
+  const { data } = await axios.get('http://localhost:8000/api/business-types')
+  return data
+}
+
 export default function CreateStorePage() {
+  const {
+    data: businessTypes,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['businessTypes'],
+    queryFn: fetchBusinessTypes,
+  })
+
   const router = useRouter()
+
   const form = useForm<CreateStoreFormValues>({
     resolver: zodResolver(createStoreSchema),
     defaultValues: {
       name: '',
       address: '',
-      phone: '',
-      email: '',
-      category: '',
+      businessType: '',
+    },
+  })
+
+  // React Query Mutation
+  const mutation = useMutation({
+    mutationFn: async (data: CreateStoreFormValues) => {
+      console.log(data)
+      const response = await axios.post(
+        'http://localhost:8000/api/stores',
+        data,
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      toast.success('Store created successfully!')
+      router.push('/dashboard')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to create store!')
     },
   })
 
   const onSubmit = (data: CreateStoreFormValues) => {
-    console.log('Form Data:', data)
-    alert('Form submitted successfully!')
+    mutation.mutate(data)
+  }
+
+  if (isLoading) {
+    return <p>Loading business types...</p>
+  }
+
+  if (isError) {
+    return <p>Failed to load business types. Please try again later.</p>
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
-            Registration Form
+            Create Store Form
           </CardTitle>
           <CardDescription>
-            Please fill out the form to register.
+            Please fill out the form to create a store.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <CardContent className="space-y-4">
-              {/* Name Field */}
               <FormField
                 control={form.control}
                 name="name"
@@ -91,73 +128,37 @@ export default function CreateStorePage() {
                 )}
               />
 
-              {/* Email Field */}
               <FormField
                 control={form.control}
-                name="email"
+                name="businessType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Business Type</FormLabel>
                     <FormControl>
-                      <Input placeholder="example@email.com" {...field} />
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {businessTypes?.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type
+                                .toLowerCase()
+                                .replace(/_/g, ' ')
+                                .replace(/\b\w/g, (char) => char.toUpperCase())}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
-                {/* Phone Field */}
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="08123456789" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                {/* Category Field */}
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="fashion">Fashion</SelectItem>
-                            <SelectItem value="electronics">
-                              Electronics
-                            </SelectItem>
-                            <SelectItem value="home">Home & Garden</SelectItem>
-                            <SelectItem value="beauty">
-                              Beauty & Personal Care
-                            </SelectItem>
-                            <SelectItem value="food">
-                              Food & Beverage
-                            </SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              {/* Address Field */}
               <FormField
                 control={form.control}
                 name="address"
@@ -182,8 +183,12 @@ export default function CreateStorePage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="w-full">
-                Submit
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? 'Submitting...' : 'Submit'}
               </Button>
             </CardFooter>
           </form>
