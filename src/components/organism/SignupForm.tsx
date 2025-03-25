@@ -47,28 +47,20 @@ const signupSchema = z
 
 type SignupFormValues = z.infer<typeof signupSchema>
 
-interface SignupPayload {
-  name: string
-  email: string
-  password: string
-  password_confirmation: string
-}
-
-// Transform data
-function transformSignupData(data: SignupFormValues): SignupPayload {
-  return {
+async function signupUser(
+  data: SignupFormValues,
+): Promise<{ success: boolean }> {
+  const transformedData = {
     name: data.name,
     email: data.email,
     password: data.password,
     password_confirmation: data.confirmPassword,
   }
-}
 
-async function signupUser(data: SignupPayload): Promise<{ success: boolean }> {
   try {
     const response = await axios.post(
       'http://localhost:8000/api/register',
-      data,
+      transformedData,
     )
 
     return response.data
@@ -108,8 +100,7 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
   })
 
   const onSubmit = (data: SignupFormValues) => {
-    const payload = transformSignupData(data)
-    mutation.mutate(payload)
+    mutation.mutate(data)
   }
 
   return (
