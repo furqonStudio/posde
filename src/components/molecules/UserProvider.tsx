@@ -29,8 +29,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user))
+      document.cookie = `token=${user.id}; path=/;`
     } else {
       localStorage.removeItem('user')
+      document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`
     }
   }, [user])
 
