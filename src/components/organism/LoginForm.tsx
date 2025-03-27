@@ -36,7 +36,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 async function loginUser(
   data: LoginFormValues,
-): Promise<{ success: boolean; data?: { user: User } }> {
+): Promise<{ success: boolean; data: { user: User; token: string } }> {
   try {
     const response = await axios.post('http://localhost:8000/api/login', data)
     return response.data
@@ -51,7 +51,6 @@ async function loginUser(
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const router = useRouter()
-  const queryClient = useQueryClient()
   const { setUser } = useUser()
 
   const form = useForm<LoginFormValues>({
@@ -68,10 +67,11 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       if (data.success && data.data) {
         toast.success('Login successful!')
 
-        queryClient.setQueryData(['user'], data.data?.user)
-
-        // Simpan user ke context dan localStorage
         setUser(data.data.user)
+
+        document.cookie = `authToken=${data.data.token}; path=/; max-age=${
+          7 * 24 * 60 * 60
+        }; secure; samesite=strict`
 
         if (data.data.user.store_id === null) {
           router.push('/create-store')

@@ -5,11 +5,48 @@ import { Button } from '../ui/button'
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react'
 import { menuItems } from '@/data'
 import { usePathname, useRouter } from 'next/navigation'
+import axios from 'axios'
+import { toast } from 'sonner'
+import { useUser } from '../molecules/UserProvider'
+
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+  return null
+}
 
 export const SideBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const { setUser } = useUser()
+
+  const handleLogout = async () => {
+    const token = getCookie('authToken')
+    if (!token) {
+      toast.error('You are not logged in!')
+      return
+    }
+
+    try {
+      await axios.post(
+        'http://localhost:8000/api/logout',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      document.cookie = 'authToken=; path=/; max-age=0; secure; samesite=strict'
+      setUser(null)
+      toast.success('Logout successful!')
+      router.push('/')
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to logout.')
+    }
+  }
 
   return (
     <div
@@ -51,6 +88,7 @@ export const SideBar = () => {
           <Button
             variant="ghost"
             className="text-destructive w-full justify-start"
+            onClick={handleLogout}
           >
             <LogOut className="mr-2 h-5 w-5" />
             Logout
