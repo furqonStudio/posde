@@ -41,7 +41,8 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       onClose()
       toast.success('Produk berhasil ditambahkan.')
     },
-    onError: () => {
+    onError: (error) => {
+      console.log(error)
       toast.error('Gagal menambahkan produk.')
     },
   })
@@ -58,6 +59,7 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
       user_id: user?.id,
     }
     delete productData.category
+    console.log('🚀 ~ handleSaveAdd ~ productData:', productData)
 
     addProductMutation.mutate(productData)
   }

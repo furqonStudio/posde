@@ -119,7 +119,7 @@ export default function ProductDetailPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="h-fit">
           <CardContent>
-            {product.images?.length ? (
+            {product.image?.length ? (
               <div className="overflow-hidden rounded-lg border bg-white">
                 <Image
                   src={product.image}
