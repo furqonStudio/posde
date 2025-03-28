@@ -74,9 +74,9 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         }; secure; samesite=strict`
 
         if (data.data.user.store_id === null) {
-          router.push('/create-store')
+          router.replace('/create-store')
         } else {
-          router.push('/dashboard')
+          router.replace('/dashboard')
         }
       } else {
         toast.error('Invalid email or password')

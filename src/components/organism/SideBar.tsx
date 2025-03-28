@@ -42,7 +42,7 @@ export const SideBar = () => {
       document.cookie = 'authToken=; path=/; max-age=0; secure; samesite=strict'
       setUser(null)
       toast.success('Logout successful!')
-      router.push('/')
+      router.replace('/')
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to logout.')
     }
