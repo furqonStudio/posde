@@ -18,6 +18,7 @@ import { AddProductFormModal } from './AddProductFormModal'
 import { EditProductFormModal } from './EditProductFormModal'
 import { ErrorState } from '../ErrorState'
 import { LoadingState } from '../LoadingState'
+import { useUser } from '../UserProvider'
 
 export function ProductsTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)

@@ -4,9 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
-import { ErrorState } from '../ErrorState'
-import { LoadingState } from '../LoadingState'
 import { ReusableFormModal } from '../ReusableFormModal'
+import { useUser } from '../UserProvider'
 
 interface AddProductFormModalProps {
   isOpen: boolean
@@ -17,6 +16,7 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { user } = useUser()
   const queryClient = useQueryClient()
 
   const { data: categories = [] } = useQuery({
@@ -55,6 +55,7 @@ export const AddProductFormModal: React.FC<AddProductFormModalProps> = ({
     const productData = {
       ...formData,
       category_id: formData.category?.id,
+      user_id: user?.id,
     }
     delete productData.category
 

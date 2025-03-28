@@ -31,6 +31,7 @@ export type Product = {
   id: number
   name: string
   price: number
+  user_id?: number
   category_id?: number
   category: SimpleCategory
   image?: string
